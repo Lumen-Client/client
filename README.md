@@ -1,6 +1,6 @@
 # Lumen Client
 
-An enterprise-grade, ultra-polished client utility & performance mod for **Minecraft 1.21.11** (Fabric), built with Java 21, official Mojang mappings, and a delta-time animation engine. Ships as a single standalone mod file: `lumen-client-1.0.0.jar`.
+An enterprise-grade, ultra-polished client utility & performance mod for **Minecraft 1.21.11** (Fabric), built with Java 21, official Mojang mappings, and a delta-time animation engine. Ships as a single standalone mod file: `lumen-client-1.1.0.jar`.
 
 ![Lumen Client](src/main/resources/assets/lumen/icon.png)
 
@@ -78,8 +78,8 @@ gradlew.bat build          # Windows
 First run downloads Loom, Minecraft 1.21.11, mappings, and Fabric API (a few minutes). When it finishes:
 
 ```
-build/libs/lumen-client-1.0.0.jar            ← the mod, drop into .minecraft/mods/
-build/libs/lumen-client-1.0.0-sources.jar    ← sources (do not install)
+build/libs/lumen-client-1.1.0.jar            ← the mod, drop into .minecraft/mods/
+build/libs/lumen-client-1.1.0-sources.jar    ← sources (do not install)
 ```
 
 The jar is fully remapped to intermediary and standalone — no extra libraries required beyond Fabric Loader + Fabric API.
@@ -87,7 +87,7 @@ The jar is fully remapped to intermediary and standalone — no extra libraries 
 ### Install
 
 1. Install the [Fabric Loader](https://fabricmc.net/use/installer/) for Minecraft **1.21.11**.
-2. Drop [Fabric API](https://modrinth.com/mod/fabric-api) and `lumen-client-1.0.0.jar` into `.minecraft/mods/`.
+2. Drop [Fabric API](https://modrinth.com/mod/fabric-api) and `lumen-client-1.1.0.jar` into `.minecraft/mods/`.
 3. Launch the game.
 
 ---
