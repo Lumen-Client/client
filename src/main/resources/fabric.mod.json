@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "lumen-client",
+  "version": "${version}",
+  "name": "Lumen Client",
+  "description": "Enterprise-grade client utility & performance mod. Custom fonts, live theming, delta-time animations, HUD editor, freelook, zoom and a deep optimization suite.",
+  "authors": [
+    "Lumen Team"
+  ],
+  "contact": {
+    "homepage": "https://lumen.dev",
+    "sources": "https://github.com/lumen-dev/lumen-client"
+  },
+  "license": "MIT",
+  "icon": "assets/lumen/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.lumen.client.LumenClient"
+    ],
+    "modmenu": [
+      "dev.lumen.client.integration.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "lumen.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.1",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "modmenu": ">=17.0.0"
+  }
+}

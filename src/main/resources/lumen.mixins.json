@@ -1,0 +1,26 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.lumen.client.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "GuiCrosshairMixin",
+    "GuiFireMixin",
+    "MthMixin",
+    "MouseHandlerMixin",
+    "CameraMixin",
+    "EntityTurnMixin",
+    "GameRendererMixin",
+    "OptionInstanceMixin",
+    "FramerateLimitTrackerMixin",
+    "EntityRenderDispatcherMixin",
+    "BlockEntityRenderDispatcherMixin",
+    "ParticleEngineMixin",
+    "ParticleMixin",
+    "SectionRenderDispatcherMixin",
+    "LevelMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}
