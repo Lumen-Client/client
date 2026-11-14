@@ -31,11 +31,9 @@ dev.lumen.client
 ├── modules/
 │   ├── hud/                 # Watermark, SprintStatus, FPS, Ping, ServerInfo, Coordinates,
 │   │                        # Compass, Keystrokes, ArmorStatus, PotionStatus, ComboCounter,
-│   │                        # ScoreboardWrap, BossBarWrap, MiniPlayer
+│   │                        # ScoreboardWrap, BossBarWrap
 │   ├── visual/              # Crosshair, Freelook, Zoom, Fullbright, NoHurtCam, LowFire,
-│   │                        # Hitboxes, ItemPhysics, TimeChanger
-│   ├── qol/                 # AutoGG, ChatTimestamps, ChatStacking, InventorySort,
-│   │                        # ScrollAdjust
+│   │                        # LowShield, Hitboxes, ItemPhysics, TimeChanger
 │   └── perf/                # ParticleOptimizer, ChunkOptimizer, EntityOptimizer,
 │                            # RenderOptimizer, SystemOptimizer
 ├── mixin/                   # 15 surgical mixins (see lumen.mixins.json)
@@ -113,9 +111,6 @@ Watermark with animated gradient shimmer · Sprint/Sneak status (read-only indic
 
 ### Visuals
 Custom crosshair designer (Cross / Dot / Circle / Chevron / Cross+Dot, line length, thickness, gap, outline, T-shape, theme sync, dynamic spread on sprint/jump/attack, target highlight) · freelook with decoupled camera, smooth snap-back, ±90° pitch clamp, axis inversion · advanced zoom (silky FOV interpolation, scroll magnification 1.5×–50×, dynamic sensitivity, cinematic camera, hide hand/HUD) · fullbright · no hurt cam · low fire/shield · themed entity hitboxes · item physics · client time/weather changer.
-
-### QoL
-AutoGG (game + player chat triggers) · chat timestamps · duplicate message stacking `[x2]`.
 
 ### Performance suite (all toggleable, granular sliders)
 - **Particles:** frustum + distance culling (default 32 blocks), active cap (500–4000), spam suppression (explosions, potion swirls, block dust, rain) with combat-particle allowlist (crits, damage indicators, sweep). **Advanced Mode** exposes individual allow/deny toggles for every particle group (explosions, swirls, dust, rain, smoke, fire, hearts & notes, portal, enchant, fireworks, bubbles, clouds, leaves, spores).

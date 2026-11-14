@@ -54,6 +54,11 @@ public class PotionStatusModule extends HudModule {
     }
 
     @Override
+    public void preRender() {
+        anyVisible = false;
+    }
+
+    @Override
     public void renderHud(GuiGraphics graphics, float delta) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) {
@@ -61,7 +66,6 @@ public class PotionStatusModule extends HudModule {
             return;
         }
         ThemeManager theme = ThemeManager.get();
-        anyVisible = false;
 
         Collection<MobEffectInstance> effects = mc.player.getActiveEffects();
         int index = 0;

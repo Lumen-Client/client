@@ -33,6 +33,7 @@ public class FreelookModule extends Module {
     private final VelocityState pitchVelocity = new VelocityState();
 
     private boolean active;
+    private boolean toggleState;
     private boolean returning;
     private CameraType previousCameraType = CameraType.FIRST_PERSON;
 
@@ -81,9 +82,9 @@ public class FreelookModule extends Module {
             }
         } else {
             while (keybinds.consumeFreelookClick()) {
-                active = !active;
+                toggleState = !toggleState;
             }
-            activate = active;
+            activate = toggleState;
         }
 
         if (activate && !active) {
@@ -145,6 +146,7 @@ public class FreelookModule extends Module {
     public void onDisable() {
         Minecraft mc = Minecraft.getInstance();
         active = false;
+        toggleState = false;
         returning = false;
         if (mc.options.getCameraType() != previousCameraType && mc.player != null) {
             mc.options.setCameraType(previousCameraType);

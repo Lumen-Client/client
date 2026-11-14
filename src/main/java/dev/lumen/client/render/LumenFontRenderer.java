@@ -13,16 +13,20 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.ByteBuffer;
 
 /**
- * STB TrueType glyph-atlas renderer. Bakes each font once into a 512x512
- * alpha atlas at the exact on-screen pixel size (crisp, no downscaling),
- * caches per-glyph metrics in primitive arrays and draws through the vanilla
- * GUI textured pipeline - zero allocation per frame.
+ * STB TrueType glyph-atlas renderer. Each font is baked once at high
+ * resolution (64px glyphs into a 1024x1024 alpha atlas) and drawn scaled
+ * down to the on-screen size, so text stays crisp at any Minecraft GUI
+ * scale instead of being upscaled from a tiny bitmap. Glyph metrics are
+ * cached in primitive arrays and drawing goes through the vanilla GUI
+ * textured pipeline - zero allocation per frame.
  */
 public class LumenFontRenderer {
-    public static final int ATLAS_SIZE = 512;
+    public static final int ATLAS_SIZE = 1024;
     public static final int FIRST_CHAR = 32;
     public static final int CHAR_COUNT = 224;
-    public static final int BAKE_HEIGHT = 20;
+    public static final int BAKE_PIXEL_SIZE = 64;
+    public static final float DRAW_SIZE = 13.0f;
+    private static final float DRAW_SCALE = DRAW_SIZE / BAKE_PIXEL_SIZE;
 
     private final String id;
     private final ByteBuffer fontData;
@@ -58,7 +62,7 @@ public class LumenFontRenderer {
 
         STBTTBakedChar.Buffer chars = STBTTBakedChar.malloc(CHAR_COUNT);
         ByteBuffer bitmap = MemoryUtil.memAlloc(ATLAS_SIZE * ATLAS_SIZE);
-        int result = STBTruetype.stbtt_BakeFontBitmap(fontData, BAKE_HEIGHT, bitmap, ATLAS_SIZE, ATLAS_SIZE, FIRST_CHAR, chars);
+        int result = STBTruetype.stbtt_BakeFontBitmap(fontData, BAKE_PIXEL_SIZE, bitmap, ATLAS_SIZE, ATLAS_SIZE, FIRST_CHAR, chars);
         if (result <= 0) {
             MemoryUtil.memFree(bitmap);
             chars.free();
@@ -95,27 +99,27 @@ public class LumenFontRenderer {
         float width = 0.0f;
         for (int i = 0; i < text.length(); i++) {
             int index = text.charAt(i) - FIRST_CHAR;
-            width += (index >= 0 && index < CHAR_COUNT) ? advances[index] : BAKE_HEIGHT * 0.3f;
+            width += (index >= 0 && index < CHAR_COUNT) ? advances[index] : BAKE_PIXEL_SIZE * 0.3f;
         }
-        return width;
+        return width * DRAW_SCALE;
     }
 
     public float getCharHeight() {
-        return BAKE_HEIGHT * 0.9f;
+        return DRAW_SIZE * 0.9f;
     }
 
     public void drawString(GuiGraphics graphics, CharSequence text, float x, float y, int argb, boolean shadow) {
         if (!isAvailable()) initialize();
         if (!isAvailable()) return;
         if (shadow) {
-            drawInternal(graphics, text, x + 1.0f, y + 1.0f, (argb & 0xFF000000));
+            drawScaled(graphics, text, x + 1.0f, y + 1.0f, (argb & 0xFF000000), 1.0f);
         }
-        drawInternal(graphics, text, x, y, argb);
+        drawScaled(graphics, text, x, y, argb, 1.0f);
     }
 
-    private void drawInternal(GuiGraphics graphics, CharSequence text, float x, float y, int argb) {
-        float cursor = x;
-        float baseline = y + BAKE_HEIGHT * 0.78f;
+    private void drawInternal(GuiGraphics graphics, CharSequence text, int argb) {
+        float cursor = 0.0f;
+        float baseline = BAKE_PIXEL_SIZE * 0.78f;
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             int index = c - FIRST_CHAR;
@@ -124,7 +128,7 @@ public class LumenFontRenderer {
                 continue;
             }
             if (index < 0 || index >= CHAR_COUNT) {
-                cursor += BAKE_HEIGHT * 0.3f;
+                cursor += BAKE_PIXEL_SIZE * 0.3f;
                 continue;
             }
             STBTTBakedChar glyph = bakedChars.get(index);
@@ -151,14 +155,20 @@ public class LumenFontRenderer {
     }
 
     public void drawScaledString(GuiGraphics graphics, CharSequence text, float x, float y, int argb, float scale, boolean shadow) {
-        if (scale == 1.0f) {
-            drawString(graphics, text, x, y, argb, shadow);
-            return;
+        if (!isAvailable()) initialize();
+        if (!isAvailable()) return;
+        if (shadow) {
+            drawScaled(graphics, text, x + 1.0f, y + 1.0f, (argb & 0xFF000000), scale);
         }
+        drawScaled(graphics, text, x, y, argb, scale);
+    }
+
+    private void drawScaled(GuiGraphics graphics, CharSequence text, float x, float y, int argb, float scale) {
         graphics.pose().pushMatrix();
         graphics.pose().translate(x, y);
-        graphics.pose().scale(scale, scale);
-        drawString(graphics, text, 0.0f, 0.0f, argb, shadow);
+        float s = DRAW_SCALE * scale;
+        graphics.pose().scale(s, s);
+        drawInternal(graphics, text, argb);
         graphics.pose().popMatrix();
     }
 

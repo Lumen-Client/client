@@ -93,26 +93,26 @@ public final class RenderUtils {
             return;
         }
         Identifier tex = getRoundedTexture(r);
-        int corner = r + 6;
-        if (corner * 2 > w || corner * 2 > h) {
-            corner = (int) (Math.min(w, h) / 2.0f);
+        int corner = Math.min(r + 6, CORNER_TEX / 2);
+        if (corner * 2 > w) corner = (int) (w / 2.0f);
+        if (corner * 2 > h) corner = (int) (h / 2.0f);
+        if (corner < 1) {
+            fill(graphics, x, y, w, h, argb);
+            return;
         }
-        int midW = (int) w - corner * 2;
-        int midH = (int) h - corner * 2;
-        int texHalf = CORNER_TEX / 2;
-        int inner = CORNER_TEX / 2 - corner;
-        if (inner < 0) inner = 0;
+        float midW = w - corner * 2.0f;
+        float midH = h - corner * 2.0f;
 
+        if (midW > 0 && midH > 0) {
+            fill(graphics, x + corner, y + corner, midW, midH, argb);
+        }
         if (midW > 0) {
-            graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, tex, (int) x + corner, (int) y, inner, 0, midW, corner, CORNER_TEX, CORNER_TEX, argb);
-            graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, tex, (int) x + corner, (int) (y + h) - corner, inner, texHalf, midW, corner, CORNER_TEX, CORNER_TEX, argb);
+            fill(graphics, x + corner, y, midW, corner, argb);
+            fill(graphics, x + corner, y + h - corner, midW, corner, argb);
         }
         if (midH > 0) {
-            graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, tex, (int) x, (int) y + corner, 0, inner, corner, midH, CORNER_TEX, CORNER_TEX, argb);
-            graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, tex, (int) (x + w) - corner, (int) y + corner, texHalf, inner, corner, midH, CORNER_TEX, CORNER_TEX, argb);
-        }
-        if (midW > 0 && midH > 0) {
-            graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, tex, (int) x + corner, (int) y + corner, inner, inner, midW, midH, CORNER_TEX, CORNER_TEX, argb);
+            fill(graphics, x, y + corner, corner, midH, argb);
+            fill(graphics, x + w - corner, y + corner, corner, midH, argb);
         }
         drawCorner(graphics, tex, x, y, corner, 0, 0, argb);
         drawCorner(graphics, tex, x + w - corner, y, corner, CORNER_TEX - corner, 0, argb);

@@ -62,6 +62,15 @@ public abstract class HudModule extends Module {
 
     public abstract float getHudHeight();
 
+    /**
+     * Called every frame before the emptiness check so modules can update
+     * animations and visibility flags even while hidden - without this,
+     * elements that only become non-empty inside renderHud could never
+     * appear (the dispatcher would keep skipping their render).
+     */
+    public void preRender() {
+    }
+
     public abstract void renderHud(GuiGraphics graphics, float delta);
 
     public boolean shouldShowInEditor() {

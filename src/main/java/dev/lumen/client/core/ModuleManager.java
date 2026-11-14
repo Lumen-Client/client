@@ -4,7 +4,6 @@ import dev.lumen.client.LumenClient;
 import dev.lumen.client.core.config.ConfigManager;
 import dev.lumen.client.modules.hud.*;
 import dev.lumen.client.modules.perf.*;
-import dev.lumen.client.modules.qol.*;
 import dev.lumen.client.modules.visual.*;
 
 import java.util.ArrayList;
@@ -52,9 +51,6 @@ public class ModuleManager {
         register(new LowShieldModule());
         register(new TimeChangerModule());
 
-        register(new AutoGGModule());
-        register(new ChatTimestampsModule());
-        register(new ChatStackingModule());
 
         register(new ParticleOptimizerModule());
         register(new ChunkOptimizerModule());

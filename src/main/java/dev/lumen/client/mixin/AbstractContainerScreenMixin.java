@@ -17,9 +17,9 @@ public class AbstractContainerScreenMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
     private void lumen$containerLogo(GuiGraphics graphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        int size = 10;
+        int size = 12;
         int x = 4;
         int y = graphics.guiHeight() - size - 4;
-        RenderUtils.drawTexture(graphics, RenderUtils.LOGO_TEXTURE, x, y, size, size, 0x90FFFFFF);
+        RenderUtils.drawTexture(graphics, RenderUtils.LOGO_TEXTURE, x, y, size, size, 0xC8FFFFFF);
     }
 }

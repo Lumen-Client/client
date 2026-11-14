@@ -78,13 +78,17 @@ public class ComboCounterModule extends HudModule {
     }
 
     @Override
-    public void renderHud(GuiGraphics graphics, float delta) {
+    public void preRender() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player != null) {
             detectAttack(mc);
         }
-        if (displayText.isEmpty()) return;
         popAnim.update();
+    }
+
+    @Override
+    public void renderHud(GuiGraphics graphics, float delta) {
+        if (displayText.isEmpty()) return;
         float pop = 1.0f + 0.25f * (1.0f - popAnim.getValue());
         ThemeManager theme = ThemeManager.get();
         TextRenderer.drawScaled(graphics, displayText, 5.0f, 4.0f + (pop - 1.0f) * 4.0f,

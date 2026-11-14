@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "GuiCrosshairMixin",
-    "GuiFireMixin",
+    "ScreenEffectRendererMixin",
+    "ItemInHandRendererMixin",
     "MthMixin",
     "MouseHandlerMixin",
     "CameraMixin",

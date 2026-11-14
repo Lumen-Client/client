@@ -37,16 +37,6 @@ public class GameRendererMixin {
         }
     }
 
-    @Inject(method = "renderItemInHand(FZLorg/joml/Matrix4f;)V", at = @At("HEAD"))
-    private void lumen$lowShield(float partialTick, boolean bl, Matrix4f matrix4f, CallbackInfo ci) {
-        LowShieldModule module = LowShieldModule.get();
-        if (module == null || !module.isEnabled()) return;
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || !mc.player.isUsingItem()) return;
-        if (!(mc.player.getUseItem().getItem() instanceof net.minecraft.world.item.ShieldItem)) return;
-        matrix4f.translate(0.0f, -module.getOffset(), 0.0f);
-    }
-
     @Inject(method = "bobHurt(Lcom/mojang/blaze3d/vertex/PoseStack;F)V", at = @At("HEAD"), cancellable = true)
     private void lumen$noHurtCam(PoseStack poseStack, float partialTick, CallbackInfo ci) {
         NoHurtCamModule module = NoHurtCamModule.get();

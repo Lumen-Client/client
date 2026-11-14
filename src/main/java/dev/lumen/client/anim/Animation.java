@@ -24,7 +24,34 @@ public class Animation {
     }
 
     public void setTarget(boolean on) {
-        this.increasing = on;
+        if (on != increasing) {
+            float v = value;
+            if (v > 0.0001f && v < 0.9999f) {
+                progress = solveProgress(v, on);
+            }
+            increasing = on;
+            lastNanos = System.nanoTime();
+        }
+    }
+
+    /**
+     * Re-derives the raw progress for a reversed target so the eased value
+     * stays continuous - animations can be interrupted mid-flight without
+     * any visual jump.
+     */
+    private float solveProgress(float targetValue, boolean on) {
+        float lo = 0.0f;
+        float hi = 1.0f;
+        for (int i = 0; i < 12; i++) {
+            float mid = (lo + hi) * 0.5f;
+            float val = on ? easing.apply(mid) : 1.0f - easing.apply(1.0f - mid);
+            if (val < targetValue) {
+                lo = mid;
+            } else {
+                hi = mid;
+            }
+        }
+        return (lo + hi) * 0.5f;
     }
 
     public void setTarget(boolean on, boolean instant) {

@@ -17,7 +17,7 @@ public class WatermarkModule extends HudModule {
 
     @Override
     public void onRenderTick() {
-        shimmerPhase += 0.008f * ThemeManager.get().getGradientSpeed();
+        shimmerPhase += 0.0035f * ThemeManager.get().getGradientSpeed();
         if (shimmerPhase > 1.0f) shimmerPhase -= 1.0f;
     }
 

@@ -41,6 +41,7 @@ public class HudRenderDispatcher implements HudElement {
 
         for (HudModule module : lumen.getModuleManager().getHudModules()) {
             if (!module.isEnabled() || !module.shouldShowInEditor()) continue;
+            module.preRender();
             boolean empty = module.isContentEmpty();
             graphics.pose().pushMatrix();
             graphics.pose().translate(module.getX(), module.getY());
@@ -62,9 +63,7 @@ public class HudRenderDispatcher implements HudElement {
                     RenderUtils.fill(graphics, 0.0f, 0.0f, width, height, bgColor);
                 }
             }
-            if (!empty) {
-                module.renderHud(graphics, delta);
-            }
+            module.renderHud(graphics, delta);
             graphics.pose().popMatrix();
         }
     }
