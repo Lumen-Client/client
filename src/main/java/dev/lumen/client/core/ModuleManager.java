@@ -28,7 +28,6 @@ public class ModuleManager {
     }
 
     private void registerModules() {
-        register(new WatermarkModule());
         register(new FpsModule());
         register(new PingModule());
         register(new ServerInfoModule());

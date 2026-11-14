@@ -94,7 +94,7 @@ public class LoadingOverlayMixin {
         float slide = exit * exit * exit * (baseY + logoSize + 20.0f);
         float logoX = w / 2.0f - logoSize / 2.0f;
         float logoY = baseY - logoSize / 2.0f - slide;
-        RenderUtils.drawTexture(graphics, RenderUtils.LOGO_TEXTURE, logoX, logoY, logoSize, logoSize,
+        RenderUtils.drawTexture(graphics, RenderUtils.LOGO_TEXTURE_HI, logoX, logoY, logoSize, logoSize,
                 ColorUtils.withAlpha(0xFFFFFF, (int) (255 * alpha)));
 
         float cx = w / 2.0f;

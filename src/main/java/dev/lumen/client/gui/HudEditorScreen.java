@@ -154,22 +154,20 @@ public class HudEditorScreen extends Screen {
         float h = module.getHudHeight();
         float opacity = Math.max(0.35f, module.getBackgroundOpacity());
         int bgColor = ColorUtils.withAlpha(theme.getBackground(), (int) (opacity * 255.0f));
-        if (module.hasDropShadow()) {
-            RenderUtils.dropShadow(graphics, 0.0f, 0.0f, w, h);
-        }
-        if (module.hasRoundedCorners()) {
-            RenderUtils.roundedRect(graphics, 0.0f, 0.0f, w, h, 5.0f, bgColor);
-        } else {
-            RenderUtils.fill(graphics, 0.0f, 0.0f, w, h, bgColor);
-        }
-        module.renderHud(graphics, 0.016f);
-
         boolean hovered = isOverModule(module, mouseX, mouseY);
         int borderColor = module == dragging
                 ? theme.gradientColor(0.5f, alpha)
                 : ColorUtils.withAlpha(hovered ? theme.getPrimary() : theme.getCard(), (int) ((hovered ? 255 : 120) * alpha));
         float thickness = module == dragging ? 2.0f : 1.0f;
-        RenderUtils.border(graphics, -1.0f, -1.0f, w + 2.0f, h + 2.0f, thickness, borderColor);
+        if (module.hasRoundedCorners()) {
+            RenderUtils.roundedRect(graphics, -thickness, -thickness, w + thickness * 2.0f, h + thickness * 2.0f,
+                    5.0f + thickness, borderColor);
+            RenderUtils.roundedRect(graphics, 0.0f, 0.0f, w, h, 5.0f, bgColor);
+        } else {
+            RenderUtils.fill(graphics, 0.0f, 0.0f, w, h, bgColor);
+            RenderUtils.border(graphics, -thickness, -thickness, w + thickness * 2.0f, h + thickness * 2.0f, thickness, borderColor);
+        }
+        module.renderHud(graphics, 0.016f);
 
         graphics.pose().popMatrix();
     }

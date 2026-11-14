@@ -25,9 +25,9 @@ public final class RenderUtils {
 
     private static final Map<Integer, Identifier> roundedCache = new LinkedHashMap<>(32, 0.75f, false);
     private static final Map<Long, Identifier> gradientCache = new LinkedHashMap<>(64, 0.75f, false);
+    private static final Map<Integer, Identifier> wheelCache = new LinkedHashMap<>(4, 0.75f, false);
+    private static final Map<Long, Identifier> barCache = new LinkedHashMap<>(4, 0.75f, false);
     private static Identifier shadowTexture;
-    private static Identifier wheelTexture;
-    private static Identifier barTexture;
 
     private RenderUtils() {}
 
@@ -187,7 +187,10 @@ public final class RenderUtils {
         return id;
     }
 
-    public static final Identifier LOGO_TEXTURE = Identifier.fromNamespaceAndPath("lumen", "icon.png");
+    /** 64px pre-shrunk logo for small UI spots - avoids blurry heavy downscaling. */
+    public static final Identifier LOGO_TEXTURE = Identifier.fromNamespaceAndPath("lumen", "logo_small.png");
+    /** Full-resolution 512px logo for large renders (loading screen). */
+    public static final Identifier LOGO_TEXTURE_HI = Identifier.fromNamespaceAndPath("lumen", "icon.png");
 
     /**
      * Draws a full registered texture (e.g. the client logo) scaled to w x h.
@@ -198,18 +201,23 @@ public final class RenderUtils {
     }
 
     public static void colorWheel(GuiGraphics graphics, float x, float y, float size) {
-        if (wheelTexture == null) {
-            wheelTexture = generateWheelTexture();
+        int s = (int) size;
+        if (s < 2) return;
+        Identifier tex = wheelCache.get(s);
+        if (tex == null) {
+            tex = generateWheelTexture(s);
+            wheelCache.put(s, tex);
+            evictIfNeeded(wheelCache, 8);
         }
-        graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, wheelTexture,
-                (int) x, (int) y, 0, 0, (int) size, (int) size, WHEEL_TEX, WHEEL_TEX, 0xFFFFFFFF);
+        graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, tex,
+                (int) x, (int) y, 0.0f, 0.0f, s, s, s, s, 0xFFFFFFFF);
     }
 
-    private static Identifier generateWheelTexture() {
-        NativeImage image = new NativeImage(WHEEL_TEX, WHEEL_TEX, false);
-        float center = (WHEEL_TEX - 1) / 2.0f;
-        for (int y = 0; y < WHEEL_TEX; y++) {
-            for (int x = 0; x < WHEEL_TEX; x++) {
+    private static Identifier generateWheelTexture(int size) {
+        NativeImage image = new NativeImage(size, size, false);
+        float center = (size - 1) / 2.0f;
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
                 float dx = (x - center) / center;
                 float dy = (y - center) / center;
                 float dist = (float) Math.sqrt(dx * dx + dy * dy);
@@ -224,28 +232,35 @@ public final class RenderUtils {
                 image.setPixelABGR(x, y, (dist < 0.985f ? 0xFF000000 : 0xC0000000) | rgb);
             }
         }
-        Identifier id = Identifier.fromNamespaceAndPath("lumen", "color_wheel");
+        Identifier id = Identifier.fromNamespaceAndPath("lumen", "color_wheel_" + size);
         Minecraft.getInstance().getTextureManager().register(id, new DynamicTexture(() -> "Lumen Color Wheel", image));
         return id;
     }
 
     public static void brightnessBar(GuiGraphics graphics, float x, float y, float w, float h) {
-        if (barTexture == null) {
-            barTexture = generateBarTexture();
+        int bw = (int) w;
+        int bh = (int) h;
+        if (bw < 1 || bh < 1) return;
+        long key = ((long) bw << 16) | bh;
+        Identifier tex = barCache.get(key);
+        if (tex == null) {
+            tex = generateBarTexture(bw, bh);
+            barCache.put(key, tex);
+            evictIfNeeded(barCache, 8);
         }
-        graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, barTexture,
-                (int) x, (int) y, 0, 0, (int) w, (int) h, 256, 16, 0xFFFFFFFF);
+        graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, tex,
+                (int) x, (int) y, 0.0f, 0.0f, bw, bh, bw, bh, 0xFFFFFFFF);
     }
 
-    private static Identifier generateBarTexture() {
-        NativeImage image = new NativeImage(256, 16, false);
-        for (int x = 0; x < 256; x++) {
-            int color = java.awt.Color.HSBtoRGB(0.0f, 0.0f, x / 255.0f) & 0xFFFFFF;
-            for (int y = 0; y < 16; y++) {
+    private static Identifier generateBarTexture(int w, int h) {
+        NativeImage image = new NativeImage(w, h, false);
+        for (int x = 0; x < w; x++) {
+            int color = java.awt.Color.HSBtoRGB(0.0f, 0.0f, x / (float) (w - 1)) & 0xFFFFFF;
+            for (int y = 0; y < h; y++) {
                 image.setPixelABGR(x, y, 0xFF000000 | color);
             }
         }
-        Identifier id = Identifier.fromNamespaceAndPath("lumen", "brightness_bar");
+        Identifier id = Identifier.fromNamespaceAndPath("lumen", "brightness_bar_" + w + "x" + h);
         Minecraft.getInstance().getTextureManager().register(id, new DynamicTexture(() -> "Lumen Brightness Bar", image));
         return id;
     }
@@ -295,5 +310,7 @@ public final class RenderUtils {
     public static void clearCaches() {
         roundedCache.clear();
         gradientCache.clear();
+        wheelCache.clear();
+        barCache.clear();
     }
 }

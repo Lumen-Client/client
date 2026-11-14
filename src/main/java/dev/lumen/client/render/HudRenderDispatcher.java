@@ -54,9 +54,6 @@ public class HudRenderDispatcher implements HudElement {
                 float width = module.getHudWidth();
                 float height = module.getHudHeight();
                 int bgColor = ColorUtils.withAlpha(theme.getBackground(), (int) (opacity * 255.0f));
-                if (module.hasDropShadow()) {
-                    RenderUtils.dropShadow(graphics, 0.0f, 0.0f, width, height);
-                }
                 if (module.hasRoundedCorners()) {
                     RenderUtils.roundedRect(graphics, 0.0f, 0.0f, width, height, 5.0f, bgColor);
                 } else {

@@ -11,7 +11,6 @@ public abstract class HudModule extends Module {
     protected final NumberSetting scale = new NumberSetting("Scale", 1.0, 0.5, 2.5, 0.05, 2);
     protected final NumberSetting backgroundOpacity = new NumberSetting("Background Opacity", 0.55, 0.0, 1.0, 0.05, 2);
     protected final BooleanSetting roundedCorners = new BooleanSetting("Rounded Corners", true);
-    protected final BooleanSetting dropShadow = new BooleanSetting("Drop Shadow", true);
 
     protected HudModule(String name, String description) {
         this(name, description, 6.0f, 6.0f);
@@ -21,7 +20,7 @@ public abstract class HudModule extends Module {
         super(name, description, Category.HUD);
         this.x = defaultX;
         this.y = defaultY;
-        addSettings(scale, backgroundOpacity, roundedCorners, dropShadow);
+        addSettings(scale, backgroundOpacity, roundedCorners);
     }
 
     public float getX() {
@@ -52,10 +51,6 @@ public abstract class HudModule extends Module {
 
     public boolean hasRoundedCorners() {
         return roundedCorners.get();
-    }
-
-    public boolean hasDropShadow() {
-        return dropShadow.get();
     }
 
     public abstract float getHudWidth();

@@ -211,12 +211,12 @@ public class ClickGuiScreen extends Screen {
         ThemeManager theme = ThemeManager.get();
         tooltipText = null;
         RenderUtils.dropShadow(graphics, winX, winY, WIN_W, WIN_H);
+        RenderUtils.roundedRect(graphics, winX - 1.0f, winY - 1.0f, WIN_W + 2.0f, WIN_H + 2.0f, 11.0f,
+                ColorUtils.withAlpha(theme.getPrimary(), (int) (90 * alpha)));
         RenderUtils.roundedRect(graphics, winX, winY, WIN_W, WIN_H, 10.0f,
                 ColorUtils.withAlpha(theme.getBackground(), (int) (242 * alpha * theme.getGuiOpacity())));
         RenderUtils.roundedGradient(graphics, winX, winY, WIN_W, HEADER_H, 10.0f,
                 theme.gradientColor(0.0f, alpha * 0.35f), theme.gradientColor(1.0f, alpha * 0.35f), true);
-        RenderUtils.border(graphics, winX, winY, WIN_W, WIN_H, 1.0f,
-                ColorUtils.withAlpha(theme.getPrimary(), (int) (90 * alpha)));
 
         RenderUtils.drawTexture(graphics, RenderUtils.LOGO_TEXTURE, winX + 9.0f, winY + 5.0f, 14.0f, 14.0f,
                 ColorUtils.withAlpha(0xFFFFFF, (int) (255 * alpha)));
@@ -240,10 +240,10 @@ public class ClickGuiScreen extends Screen {
             float tw = TextRenderer.width(tooltipText);
             float tx = Math.min(localMouseX + 12.0f, width - tw - 18.0f);
             float ty = Math.min(localMouseY + 16.0f, height - 24.0f);
+            RenderUtils.roundedRect(graphics, tx - 7.0f, ty - 5.0f, tw + 14.0f, TextRenderer.height() + 10.0f, 6.0f,
+                    ColorUtils.withAlpha(theme.getPrimary(), (int) (120 * alpha)));
             RenderUtils.roundedRect(graphics, tx - 6.0f, ty - 4.0f, tw + 12.0f, TextRenderer.height() + 8.0f, 5.0f,
                     ColorUtils.withAlpha(0xFF0B0B0E, (int) (242 * alpha)));
-            RenderUtils.border(graphics, tx - 6.0f, ty - 4.0f, tw + 12.0f, TextRenderer.height() + 8.0f, 1.0f,
-                    ColorUtils.withAlpha(theme.getPrimary(), (int) (120 * alpha)));
             TextRenderer.draw(graphics, tooltipText, tx, ty,
                     ColorUtils.withAlpha(theme.getText(), (int) (235 * alpha)), true);
         }
@@ -393,10 +393,10 @@ public class ClickGuiScreen extends Screen {
         float barY = contentY + 6.0f;
         float barW = contentW - 16.0f;
 
+        RenderUtils.roundedRect(graphics, barX - 1.0f, barY - 1.0f, barW + 2.0f, 18.0f, 6.0f,
+                ColorUtils.withAlpha(theme.getPrimary(), (int) ((searchFocused ? 160 : 50) * alpha)));
         RenderUtils.roundedRect(graphics, barX, barY, barW, 16.0f, 5.0f,
                 ColorUtils.withAlpha(theme.getBackground(), (int) (255 * alpha)));
-        RenderUtils.border(graphics, barX, barY, barW, 16.0f, 1.0f,
-                ColorUtils.withAlpha(theme.getPrimary(), (int) ((searchFocused ? 160 : 50) * alpha)));
 
         String cursor = searchFocused && (System.nanoTime() / 500_000_000L) % 2 == 0 ? "_" : "";
         String display = search.isEmpty() && !searchFocused ? "Search modules..." : search + cursor;
@@ -489,9 +489,9 @@ public class ClickGuiScreen extends Screen {
         } else if (setting instanceof ColorSetting color) {
             TextRenderer.draw(graphics, setting.getName(), x + padding, y + clipH / 2.0f - TextRenderer.height() / 2.0f, text, true);
             int swatch = color.isSyncWithTheme() ? theme.getPrimary() : color.getRaw();
-            RenderUtils.roundedRect(graphics, x + w - 46.0f, y + clipH / 2.0f - 8.0f, 34.0f, 16.0f, 5.0f, swatch | 0xFF000000);
-            RenderUtils.border(graphics, x + w - 46.0f, y + clipH / 2.0f - 8.0f, 34.0f, 16.0f, 1.0f,
+            RenderUtils.roundedRect(graphics, x + w - 47.0f, y + clipH / 2.0f - 9.0f, 36.0f, 18.0f, 6.0f,
                     ColorUtils.withAlpha(0xFFFFFFFF, (int) (70 * alpha)));
+            RenderUtils.roundedRect(graphics, x + w - 46.0f, y + clipH / 2.0f - 8.0f, 34.0f, 16.0f, 5.0f, swatch | 0xFF000000);
         } else if (setting instanceof FontSetting font) {
             TextRenderer.draw(graphics, setting.getName(), x + padding, y + clipH / 2.0f - TextRenderer.height() / 2.0f, text, true);
             drawValueChip(graphics, FontManager.get().getFontDisplayName(font.get()), x + w - 120.0f, y + clipH / 2.0f - 8.0f, 108.0f, 16.0f, alpha);
@@ -569,9 +569,9 @@ public class ClickGuiScreen extends Screen {
             TextRenderer.draw(graphics, fields[i], x + 4.0f, ry + 9.0f - TextRenderer.height() / 2.0f,
                     ColorUtils.withAlpha(theme.getText(), (int) (220 * alpha)), true);
             int value = theme.getThemeField(keys[i]);
-            RenderUtils.roundedRect(graphics, x + w - 46.0f, ry + 2.0f, 34.0f, 16.0f, 5.0f, value | 0xFF000000);
-            RenderUtils.border(graphics, x + w - 46.0f, ry + 2.0f, 34.0f, 16.0f, 1.0f,
+            RenderUtils.roundedRect(graphics, x + w - 47.0f, ry + 1.0f, 36.0f, 18.0f, 6.0f,
                     ColorUtils.withAlpha(0xFFFFFFFF, (int) (70 * alpha)));
+            RenderUtils.roundedRect(graphics, x + w - 46.0f, ry + 2.0f, 34.0f, 16.0f, 5.0f, value | 0xFF000000);
             themeSwatchY[i] = ry;
         }
         bottom += fields.length * 24.0f + 8.0f;
@@ -586,8 +586,10 @@ public class ClickGuiScreen extends Screen {
         gradientModeY = bottom;
         bottom += 24.0f;
 
-        gradientSpeedSetting.set(theme.getGradientSpeed());
         Slider speedSlider = sliderCache.computeIfAbsent(gradientSpeedSetting, k -> new Slider());
+        if (!speedSlider.isDragging()) {
+            gradientSpeedSetting.set(theme.getGradientSpeed());
+        }
         speedSlider.render(graphics, x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f, gradientSpeedSetting, alpha);
         appearanceSliderGeom.put(gradientSpeedSetting, new float[]{x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f});
         if (gradientSpeedSetting.get() != theme.getGradientSpeed()) {
@@ -608,8 +610,10 @@ public class ClickGuiScreen extends Screen {
         fontSelectorY = bottom;
         bottom += 24.0f;
 
-        fontScaleSetting.set(FontManager.get().getFontScale());
         Slider fontSlider = sliderCache.computeIfAbsent(fontScaleSetting, k -> new Slider());
+        if (!fontSlider.isDragging()) {
+            fontScaleSetting.set(FontManager.get().getFontScale());
+        }
         fontSlider.render(graphics, x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f, fontScaleSetting, alpha);
         appearanceSliderGeom.put(fontScaleSetting, new float[]{x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f});
         if (fontScaleSetting.get() != FontManager.get().getFontScale()) {
@@ -618,16 +622,20 @@ public class ClickGuiScreen extends Screen {
         bottom += 30.0f;
 
         bottom = renderSectionLabel(graphics, "Interface", x, bottom, alpha);
-        guiOpacitySetting.set(theme.getGuiOpacity());
         Slider opacitySlider = sliderCache.computeIfAbsent(guiOpacitySetting, k -> new Slider());
+        if (!opacitySlider.isDragging()) {
+            guiOpacitySetting.set(theme.getGuiOpacity());
+        }
         opacitySlider.render(graphics, x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f, guiOpacitySetting, alpha);
         appearanceSliderGeom.put(guiOpacitySetting, new float[]{x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f});
         if (guiOpacitySetting.get() != theme.getGuiOpacity()) {
             theme.setGuiOpacity(guiOpacitySetting.getFloat());
         }
         bottom += 30.0f;
-        guiScaleSetting.set(theme.getGuiScale());
         Slider scaleSlider = sliderCache.computeIfAbsent(guiScaleSetting, k -> new Slider());
+        if (!scaleSlider.isDragging()) {
+            guiScaleSetting.set(theme.getGuiScale());
+        }
         scaleSlider.render(graphics, x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f, guiScaleSetting, alpha);
         appearanceSliderGeom.put(guiScaleSetting, new float[]{x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f});
         if (guiScaleSetting.get() != theme.getGuiScale()) {

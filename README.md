@@ -29,7 +29,7 @@ dev.lumen.client
 ├── gui/                     # ClickGuiScreen, HudEditorScreen
 │   └── components/          # ToggleSwitch, Slider, ColorPickerPanel
 ├── modules/
-│   ├── hud/                 # Watermark, SprintStatus, FPS, Ping, ServerInfo, Coordinates,
+│   ├── hud/                 # SprintStatus, FPS, Ping, ServerInfo, Coordinates,
 │   │                        # Compass, Keystrokes, ArmorStatus, PotionStatus, ComboCounter,
 │   │                        # ScoreboardWrap, BossBarWrap
 │   ├── visual/              # Crosshair, Freelook, Zoom, Fullbright, NoHurtCam, LowFire,
@@ -107,7 +107,7 @@ All binds are fully two-way synced with Lumen's internal keybind pickers.
 ## 4. Feature Matrix
 
 ### HUD overlays (drag-and-drop editor with magnetic snapping + scaling)
-Watermark with animated gradient shimmer · Sprint/Sneak status (read-only indicator — never modifies movement) · FPS with 1% lows · Ping with color-coded badge · Server TPS/IP · XYZ with Nether/Overworld converter + biome · scrolling cardinal compass bar · keystrokes + CPS with animated press ripple · armor/hand durability bars with numeric durability · potion effects · combo counter (edge-detected, no hold spam) · target HUD with health bar + hearts · scoreboard/bossbar wrappers. Empty HUD elements (no armor, no effects) hide completely.
+Sprint/Sneak status (read-only indicator — never modifies movement) · FPS with 1% lows · Ping with color-coded badge · Server TPS/IP · XYZ with Nether/Overworld converter + biome · scrolling cardinal compass bar · keystrokes + CPS with animated press ripple · armor/hand durability bars with numeric durability · potion effects · combo counter (edge-detected, no hold spam) · target HUD with health bar + hearts · scoreboard/bossbar wrappers. Empty HUD elements (no armor, no effects) hide completely.
 
 ### Visuals
 Custom crosshair designer (Cross / Dot / Circle / Chevron / Cross+Dot, line length, thickness, gap, outline, T-shape, theme sync, dynamic spread on sprint/jump/attack, target highlight) · freelook with decoupled camera, smooth snap-back, ±90° pitch clamp, axis inversion · advanced zoom (silky FOV interpolation, scroll magnification 1.5×–50×, dynamic sensitivity, cinematic camera, hide hand/HUD) · fullbright · no hurt cam · low fire/shield · themed entity hitboxes · item physics · client time/weather changer.
