@@ -152,6 +152,8 @@ public class ConfigManager {
         obj.addProperty("text", theme.getTextColor());
         obj.addProperty("gradientMode", theme.getGradientMode());
         obj.addProperty("gradientSpeed", theme.getGradientSpeed());
+        obj.addProperty("guiScale", theme.getGuiScale());
+        obj.addProperty("guiOpacity", theme.getGuiOpacity());
         return obj;
     }
 
@@ -164,6 +166,8 @@ public class ConfigManager {
         if (obj.has("text")) theme.setTextColor(obj.get("text").getAsInt());
         if (obj.has("gradientMode")) theme.setGradientMode(obj.get("gradientMode").getAsString());
         if (obj.has("gradientSpeed")) theme.setGradientSpeed(obj.get("gradientSpeed").getAsFloat());
+        if (obj.has("guiScale")) theme.setGuiScale(obj.get("guiScale").getAsFloat());
+        if (obj.has("guiOpacity")) theme.setGuiOpacity(obj.get("guiOpacity").getAsFloat());
         return theme;
     }
 

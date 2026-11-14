@@ -14,7 +14,13 @@ public abstract class HudModule extends Module {
     protected final BooleanSetting dropShadow = new BooleanSetting("Drop Shadow", true);
 
     protected HudModule(String name, String description) {
+        this(name, description, 6.0f, 6.0f);
+    }
+
+    protected HudModule(String name, String description, float defaultX, float defaultY) {
         super(name, description, Category.HUD);
+        this.x = defaultX;
+        this.y = defaultY;
         addSettings(scale, backgroundOpacity, roundedCorners, dropShadow);
     }
 
@@ -60,5 +66,13 @@ public abstract class HudModule extends Module {
 
     public boolean shouldShowInEditor() {
         return true;
+    }
+
+    /**
+     * When true the dispatcher suppresses the shared background, shadow and
+     * border so empty HUD elements (no armor, no effects) vanish completely.
+     */
+    public boolean isContentEmpty() {
+        return false;
     }
 }

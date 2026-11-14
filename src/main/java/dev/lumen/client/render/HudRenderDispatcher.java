@@ -41,6 +41,7 @@ public class HudRenderDispatcher implements HudElement {
 
         for (HudModule module : lumen.getModuleManager().getHudModules()) {
             if (!module.isEnabled() || !module.shouldShowInEditor()) continue;
+            boolean empty = module.isContentEmpty();
             graphics.pose().pushMatrix();
             graphics.pose().translate(module.getX(), module.getY());
             float scale = module.getScale();
@@ -48,7 +49,7 @@ public class HudRenderDispatcher implements HudElement {
                 graphics.pose().scale(scale, scale);
             }
             float opacity = module.getBackgroundOpacity();
-            if (opacity > 0.01f) {
+            if (opacity > 0.01f && !empty) {
                 float width = module.getHudWidth();
                 float height = module.getHudHeight();
                 int bgColor = ColorUtils.withAlpha(theme.getBackground(), (int) (opacity * 255.0f));
@@ -61,7 +62,9 @@ public class HudRenderDispatcher implements HudElement {
                     RenderUtils.fill(graphics, 0.0f, 0.0f, width, height, bgColor);
                 }
             }
-            module.renderHud(graphics, delta);
+            if (!empty) {
+                module.renderHud(graphics, delta);
+            }
             graphics.pose().popMatrix();
         }
     }

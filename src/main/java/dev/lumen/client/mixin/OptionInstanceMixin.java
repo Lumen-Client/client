@@ -20,6 +20,7 @@ public class OptionInstanceMixin<T> {
         Minecraft mc = Minecraft.getInstance();
         if (mc == null || mc.options == null) return original;
         if ((Object) this != mc.options.gamma()) return original;
+        if (!FullbrightModule.isLightmapUpdating()) return original;
 
         FullbrightModule module = FullbrightModule.get();
         if (module == null || !module.isEnabled()) return original;

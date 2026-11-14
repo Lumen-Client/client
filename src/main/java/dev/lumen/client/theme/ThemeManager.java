@@ -88,6 +88,24 @@ public class ThemeManager {
         LumenClient.get().getConfigManager().markDirty();
     }
 
+    public float getGuiScale() {
+        return theme.getGuiScale();
+    }
+
+    public void setGuiScale(float scale) {
+        theme.setGuiScale(scale);
+        LumenClient.get().getConfigManager().markDirty();
+    }
+
+    public float getGuiOpacity() {
+        return theme.getGuiOpacity();
+    }
+
+    public void setGuiOpacity(float opacity) {
+        theme.setGuiOpacity(opacity);
+        LumenClient.get().getConfigManager().markDirty();
+    }
+
     /**
      * Resolves the gradient start color at a normalized position and time,
      * honoring the current gradient mode. Allocation free.

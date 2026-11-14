@@ -8,6 +8,8 @@ public class Theme {
     private int textColor = 0xFFF2F2F7;
     private String gradientMode = "ANIMATED";
     private float gradientSpeed = 1.0f;
+    private float guiScale = 1.0f;
+    private float guiOpacity = 1.0f;
 
     public static Theme lumenPinkAndBlack() {
         return new Theme();
@@ -103,5 +105,21 @@ public class Theme {
 
     public void setGradientSpeed(float gradientSpeed) {
         this.gradientSpeed = gradientSpeed;
+    }
+
+    public float getGuiScale() {
+        return guiScale;
+    }
+
+    public void setGuiScale(float guiScale) {
+        this.guiScale = guiScale;
+    }
+
+    public float getGuiOpacity() {
+        return guiOpacity;
+    }
+
+    public void setGuiOpacity(float guiOpacity) {
+        this.guiOpacity = guiOpacity;
     }
 }

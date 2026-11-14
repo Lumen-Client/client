@@ -16,32 +16,48 @@ public class ComboCounterModule extends HudModule {
     private int combo;
     private long lastHitMillis;
     private String displayText = "";
+    private boolean mouseWasDown;
 
     public ComboCounterModule() {
-        super("Combo Counter", "Consecutive hits landed");
+        super("Combo Counter", "Consecutive hits landed", 250.0f, 130.0f);
     }
 
     @Override
     public void onClientTick() {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null) {
+        if (Minecraft.getInstance().player == null) {
             combo = 0;
+            displayText = "";
+            mouseWasDown = false;
             return;
         }
         if (combo > 0 && System.currentTimeMillis() - lastHitMillis > 2500) {
             combo = 0;
+            displayText = "";
         }
-        Entity target = mc.crosshairPickEntity;
-        if (target instanceof LivingEntity && mc.mouseHandler.isLeftPressed()) {
-            registerHit();
+    }
+
+    /**
+     * Runs once per frame from renderHud: registers a hit only on the
+     * left-click press edge while the crosshair is on a living entity and
+     * the attack cooldown is recharged, so holding the button no longer
+     * spams the counter every tick.
+     */
+    private void detectAttack(Minecraft mc) {
+        boolean down = mc.mouseHandler.isLeftPressed();
+        if (down && !mouseWasDown) {
+            boolean charged = mc.player.getAttackStrengthScale(0.0f) > 0.95f;
+            Entity target = mc.crosshairPickEntity;
+            if (charged && target instanceof LivingEntity && target != mc.player) {
+                registerHit();
+            }
         }
-        displayText = combo > 0 ? combo + " Combo" : "";
-        popAnim.setTarget(true);
+        mouseWasDown = down;
     }
 
     public void registerHit() {
         combo++;
         lastHitMillis = System.currentTimeMillis();
+        displayText = combo + " Combo";
         popAnim.snap(false);
         popAnim.setTarget(true);
     }
@@ -57,7 +73,16 @@ public class ComboCounterModule extends HudModule {
     }
 
     @Override
+    public boolean isContentEmpty() {
+        return displayText.isEmpty();
+    }
+
+    @Override
     public void renderHud(GuiGraphics graphics, float delta) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null) {
+            detectAttack(mc);
+        }
         if (displayText.isEmpty()) return;
         popAnim.update();
         float pop = 1.0f + 0.25f * (1.0f - popAnim.getValue());

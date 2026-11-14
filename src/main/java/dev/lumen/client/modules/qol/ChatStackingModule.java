@@ -24,7 +24,7 @@ public class ChatStackingModule extends Module {
             if (text.equals(lastText) && now - lastMillis < windowSeconds.getInt() * 1000L) {
                 repeatCount++;
                 Component badge = Component.literal("[x" + (repeatCount + 1) + "] ").withStyle(
-                        s -> s.withColor(ColorUtils.withAlpha(0xFFFFD65E, 255) & 0xFFFFFF));
+                        s -> s.withColor(ColorUtils.withAlpha(0xFFFFD65E, 255)));
                 return badge.copy().append(message);
             }
             lastText = text;

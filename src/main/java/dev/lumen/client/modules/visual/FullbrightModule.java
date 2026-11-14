@@ -8,6 +8,7 @@ import dev.lumen.client.core.setting.BooleanSetting;
 
 public class FullbrightModule extends Module {
     private static FullbrightModule instance;
+    private static volatile boolean lightmapUpdating;
 
     public final BooleanSetting smoothTransition = new BooleanSetting("Smooth Transition", true);
 
@@ -21,6 +22,19 @@ public class FullbrightModule extends Module {
 
     public static FullbrightModule get() {
         return instance;
+    }
+
+    /**
+     * Only true while the lightmap texture is being rebuilt, so the boosted
+     * gamma never leaks into the options screen or the saved options.txt
+     * (which previously made fullbright appear permanently stuck on).
+     */
+    public static boolean isLightmapUpdating() {
+        return lightmapUpdating;
+    }
+
+    public static void setLightmapUpdating(boolean updating) {
+        lightmapUpdating = updating;
     }
 
     public float getGammaBoost() {

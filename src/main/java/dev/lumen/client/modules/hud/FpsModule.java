@@ -8,9 +8,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
 public class FpsModule extends HudModule {
-    private static final int FRAME_SAMPLES = 300;
+    private static final int FRAME_SAMPLES = 600;
 
     private final long[] frameNanos = new long[FRAME_SAMPLES];
+    private final long[] sortedScratch = new long[FRAME_SAMPLES];
     private int frameCursor;
     private int sampleCount;
     private long lastFrameTime;
@@ -19,7 +20,7 @@ public class FpsModule extends HudModule {
     private int recomputeCounter;
 
     public FpsModule() {
-        super("FPS Counter", "Frames per second with 1% lows");
+        super("FPS Counter", "Frames per second with 1% lows", 6.0f, 24.0f);
     }
 
     public void recordFrame() {
@@ -51,34 +52,19 @@ public class FpsModule extends HudModule {
         for (int i = 0; i < sampleCount; i++) {
             long f = frameNanos[i];
             if (f > 0) {
+                sortedScratch[count++] = f;
                 total += f;
-                count++;
             }
         }
         if (count == 0) return;
+        java.util.Arrays.sort(sortedScratch, 0, count);
         cachedFps = (int) Math.round(count / (total / 1_000_000_000.0));
-        long[] worst = new long[Math.max(1, count / 100 + 1)];
-        java.util.Arrays.fill(worst, Long.MAX_VALUE);
-        for (int i = 0; i < sampleCount; i++) {
-            long f = frameNanos[i];
-            if (f <= 0) continue;
-            for (int j = 0; j < worst.length; j++) {
-                if (f > worst[j]) {
-                    long tmp = worst[j];
-                    worst[j] = f;
-                    f = tmp;
-                }
-            }
-        }
+        int worstCount = Math.max(1, count / 100);
         long sum = 0;
-        int used = 0;
-        for (long w : worst) {
-            if (w != Long.MAX_VALUE) {
-                sum += w;
-                used++;
-            }
+        for (int i = count - worstCount; i < count; i++) {
+            sum += sortedScratch[i];
         }
-        cachedOnePercentLow = used == 0 ? cachedFps : (int) Math.round(used / (sum / 1_000_000_000.0));
+        cachedOnePercentLow = (int) Math.round(worstCount / (sum / 1_000_000_000.0));
     }
 
     @Override

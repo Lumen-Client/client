@@ -29,7 +29,7 @@ public class KeystrokesModule extends HudModule {
     private boolean lastRight;
 
     public KeystrokesModule() {
-        super("Keystrokes", "WASD, mouse buttons and CPS");
+        super("Keystrokes", "WASD, mouse buttons and CPS", 6.0f, 130.0f);
     }
 
     public void recordClick(boolean left) {

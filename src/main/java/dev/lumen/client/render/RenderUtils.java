@@ -63,11 +63,7 @@ public final class RenderUtils {
         float inner = center - radius;
         for (int y = 0; y < CORNER_TEX; y++) {
             for (int x = 0; x < CORNER_TEX; x++) {
-                float dx = Math.max(inner - Math.abs(x - center), 0.0f);
-                float dy = Math.max(inner - Math.abs(y - center), 0.0f);
-                float dist = (float) Math.sqrt(dx * dx + dy * dy);
-                float coverage = (dx > 0.0f || dy > 0.0f) ? 1.0f
-                        : Math.max(0.0f, Math.min(1.0f, radius - dist + 0.5f));
+                float coverage = roundedCoverage(x, y, center, center, inner, inner, radius);
                 int alpha = (int) (coverage * 255.0f);
                 image.setPixelABGR(x, y, (alpha << 24) | 0x00FFFFFF);
             }
@@ -75,6 +71,18 @@ public final class RenderUtils {
         Identifier id = Identifier.fromNamespaceAndPath("lumen", "rounded_" + radius);
         Minecraft.getInstance().getTextureManager().register(id, new DynamicTexture(() -> "Lumen Rounded " + radius, image));
         return id;
+    }
+
+    /** Signed-distance coverage of a rounded rectangle, 0..1, anti-aliased. */
+    private static float roundedCoverage(float x, float y, float centerX, float centerY, float innerX, float innerY, float radius) {
+        float qx = Math.abs(x - centerX) - innerX;
+        float qy = Math.abs(y - centerY) - innerY;
+        float outsideX = Math.max(qx, 0.0f);
+        float outsideY = Math.max(qy, 0.0f);
+        float outsideDist = (float) Math.sqrt(outsideX * outsideX + outsideY * outsideY);
+        float insideDist = Math.min(Math.max(qx, qy), 0.0f);
+        float dist = outsideDist + insideDist - radius;
+        return Math.max(0.0f, Math.min(1.0f, 0.5f - dist));
     }
 
     public static void roundedRect(GuiGraphics graphics, float x, float y, float w, float h, float radius, int argb) {
@@ -142,10 +150,9 @@ public final class RenderUtils {
                 float t = vertical ? (h > 1 ? y / (float) (h - 1) : 0.0f) : (w > 1 ? x / (float) (w - 1) : 0.0f);
                 int color = ColorUtils.lerp(from, to, t);
                 int alpha = ColorUtils.alphaOf(color);
-                float dx = Math.max(inner - Math.abs(x - centerX), 0.0f);
-                float dy = Math.max(inner - Math.abs(y - centerY), 0.0f);
-                float coverage = (dx > 0.0f || dy > 0.0f) ? 1.0f
-                        : Math.max(0.0f, Math.min(1.0f, radius - (float) Math.sqrt(dx * dx + dy * dy) + 0.5f));
+                float innerX = centerX - radius;
+                float innerY = centerY - radius;
+                float coverage = roundedCoverage(x, y, centerX, centerY, innerX, innerY, radius);
                 alpha = (int) (alpha * coverage);
                 image.setPixelABGR(x, y, (alpha << 24) | (color & 0xFFFFFF));
             }
@@ -158,12 +165,9 @@ public final class RenderUtils {
     private static final java.util.concurrent.atomic.AtomicInteger GRAD_COUNTER = new java.util.concurrent.atomic.AtomicInteger();
 
     public static void dropShadow(GuiGraphics graphics, float x, float y, float w, float h) {
-        if (shadowTexture == null) {
-            shadowTexture = generateRadialTexture();
-        }
-        int pad = 6;
-        graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, shadowTexture,
-                (int) x - pad, (int) y - pad, 0, 0, (int) w + pad * 2, (int) h + pad * 2, SHADOW_TEX, SHADOW_TEX, 0x50000000);
+        int soft = 0x38000000;
+        roundedRect(graphics, x - 1.5f, y + 2.0f, w + 3.0f, h + 3.0f, 8.0f, soft);
+        roundedRect(graphics, x - 3.0f, y + 5.0f, w + 6.0f, h + 4.0f, 10.0f, 0x18000000);
     }
 
     private static Identifier generateRadialTexture() {
@@ -181,6 +185,16 @@ public final class RenderUtils {
         Identifier id = Identifier.fromNamespaceAndPath("lumen", "shadow_blob");
         Minecraft.getInstance().getTextureManager().register(id, new DynamicTexture(() -> "Lumen Shadow", image));
         return id;
+    }
+
+    public static final Identifier LOGO_TEXTURE = Identifier.fromNamespaceAndPath("lumen", "icon.png");
+
+    /**
+     * Draws a full registered texture (e.g. the client logo) scaled to w x h.
+     */
+    public static void drawTexture(GuiGraphics graphics, Identifier texture, float x, float y, float w, float h, int argb) {
+        graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, texture,
+                (int) x, (int) y, 0.0f, 0.0f, (int) w, (int) h, (int) w, (int) h, argb);
     }
 
     public static void colorWheel(GuiGraphics graphics, float x, float y, float size) {
@@ -203,7 +217,8 @@ public final class RenderUtils {
                     image.setPixelABGR(x, y, 0);
                     continue;
                 }
-                float hue = (float) (Math.atan2(dy, dx) / (Math.PI * 2.0) + 0.5);
+                float hue = (float) (Math.atan2(dy, dx) / (Math.PI * 2.0));
+                if (hue < 0.0f) hue += 1.0f;
                 float sat = Math.min(1.0f, dist);
                 int rgb = java.awt.Color.HSBtoRGB(hue, sat, 1.0f) & 0xFFFFFF;
                 image.setPixelABGR(x, y, (dist < 0.985f ? 0xFF000000 : 0xC0000000) | rgb);

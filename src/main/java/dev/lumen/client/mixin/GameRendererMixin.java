@@ -1,9 +1,11 @@
 package dev.lumen.client.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import dev.lumen.client.modules.visual.LowShieldModule;
 import dev.lumen.client.modules.visual.NoHurtCamModule;
 import dev.lumen.client.modules.visual.ZoomModule;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4f;
@@ -33,6 +35,16 @@ public class GameRendererMixin {
         if (zoom != null && zoom.isEnabled() && zoom.hideHand.get() && zoom.isZooming()) {
             ci.cancel();
         }
+    }
+
+    @Inject(method = "renderItemInHand(FZLorg/joml/Matrix4f;)V", at = @At("HEAD"))
+    private void lumen$lowShield(float partialTick, boolean bl, Matrix4f matrix4f, CallbackInfo ci) {
+        LowShieldModule module = LowShieldModule.get();
+        if (module == null || !module.isEnabled()) return;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || !mc.player.isUsingItem()) return;
+        if (!(mc.player.getUseItem().getItem() instanceof net.minecraft.world.item.ShieldItem)) return;
+        matrix4f.translate(0.0f, -module.getOffset(), 0.0f);
     }
 
     @Inject(method = "bobHurt(Lcom/mojang/blaze3d/vertex/PoseStack;F)V", at = @At("HEAD"), cancellable = true)

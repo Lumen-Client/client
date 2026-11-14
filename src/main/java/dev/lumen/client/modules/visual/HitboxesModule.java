@@ -4,55 +4,43 @@ import dev.lumen.client.core.Category;
 import dev.lumen.client.core.Module;
 import dev.lumen.client.core.setting.BooleanSetting;
 import dev.lumen.client.core.setting.ColorSetting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.debug.DebugScreenEntries;
-import net.minecraft.client.gui.components.debug.DebugScreenEntryStatus;
+import dev.lumen.client.render.HitboxRenderer;
+import dev.lumen.client.theme.ThemeManager;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 
 /**
- * Themed entity hitboxes. Drives vanilla's 1.21.11 debug hitbox entry
- * (F3+B equivalent) through the official DebugScreenEntryList API, keeping
- * wireframe rendering fully vanilla-compatible.
+ * Themed entity hitbox wireframes rendered through HitboxRenderer during
+ * the world render pass (independent of vanilla's F3+B debug entry).
  */
 public class HitboxesModule extends Module {
     private static HitboxesModule instance;
 
-    public final BooleanSetting onlyHostiles = new BooleanSetting("Only Living Entities", false);
+    public final BooleanSetting onlyLiving = new BooleanSetting("Only Living Entities", false);
     public final ColorSetting wireframeColor = new ColorSetting("Wireframe Color", 0xFFFF2E93, true);
 
-    private boolean restored = true;
-
     public HitboxesModule() {
-        super("Entity Hitboxes", "Vanilla entity hitbox debug wireframes", Category.VISUALS);
+        super("Entity Hitboxes", "Themed wireframes around entity bounding boxes", Category.VISUALS);
         instance = this;
-        addSettings(onlyHostiles, wireframeColor);
+        addSettings(onlyLiving, wireframeColor);
     }
 
     public static HitboxesModule get() {
         return instance;
     }
 
+    public int wireframeColorValue() {
+        return wireframeColor.isSyncWithTheme() ? ThemeManager.get().getPrimary() : wireframeColor.getRaw();
+    }
+
     public boolean shouldRenderFor(Entity entity) {
         if (!isEnabled()) return false;
-        if (onlyHostiles.get() && !(entity instanceof net.minecraft.world.entity.LivingEntity)) return false;
+        if (onlyLiving.get() && !(entity instanceof LivingEntity)) return false;
         return true;
     }
 
     @Override
     public void onEnable() {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc != null && mc.debugEntries != null) {
-            mc.debugEntries.setStatus(DebugScreenEntries.ENTITY_HITBOXES, DebugScreenEntryStatus.ALWAYS_ON);
-            restored = false;
-        }
-    }
-
-    @Override
-    public void onDisable() {
-        Minecraft mc = Minecraft.getInstance();
-        if (!restored && mc != null && mc.debugEntries != null) {
-            mc.debugEntries.setStatus(DebugScreenEntries.ENTITY_HITBOXES, DebugScreenEntryStatus.NEVER);
-            restored = true;
-        }
+        HitboxRenderer.register();
     }
 }

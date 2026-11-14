@@ -14,7 +14,7 @@ public class ServerInfoModule extends HudModule {
     private float estimatedTps = 20.0f;
 
     public ServerInfoModule() {
-        super("Server Info", "Server address and estimated TPS");
+        super("Server Info", "Server address and estimated TPS", 6.0f, 64.0f);
     }
 
     @Override

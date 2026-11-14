@@ -19,7 +19,7 @@ public class CoordinatesModule extends HudModule {
             new dev.lumen.client.core.setting.BooleanSetting("Nether Converter", true);
 
     public CoordinatesModule() {
-        super("Coordinates", "XYZ, dimension converter and biome");
+        super("Coordinates", "XYZ, dimension converter and biome", 6.0f, 84.0f);
         addSettings(showBiome, netherConverter);
     }
 

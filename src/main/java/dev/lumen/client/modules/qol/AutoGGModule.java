@@ -27,16 +27,20 @@ public class AutoGGModule extends Module {
     public AutoGGModule() {
         super("AutoGG", "Automatically says gg after a game ends", Category.QOL);
         addSettings(message, delayTicks);
-        ClientReceiveMessageEvents.GAME.register((message1, overlay) -> {
-            if (!isEnabled()) return;
-            for (Pattern pattern : TRIGGERS) {
-                if (pattern.matcher(message1.getString()).matches()) {
-                    pendingSend = delayTicks.getInt();
-                    cooldown = 100;
-                    break;
-                }
+        ClientReceiveMessageEvents.GAME.register(this::onChatMessage);
+        ClientReceiveMessageEvents.CHAT.register(
+                (component, signedMessage, sender, params, receptionTimestamp) -> onChatMessage(component, false));
+    }
+
+    private void onChatMessage(net.minecraft.network.chat.Component component, boolean overlay) {
+        if (!isEnabled() || overlay || cooldown > 0 || pendingSend > 0) return;
+        for (Pattern pattern : TRIGGERS) {
+            if (pattern.matcher(component.getString()).matches()) {
+                pendingSend = Math.max(1, delayTicks.getInt());
+                cooldown = 200;
+                break;
             }
-        });
+        }
     }
 
     @Override
@@ -44,7 +48,7 @@ public class AutoGGModule extends Module {
         if (cooldown > 0) cooldown--;
         if (pendingSend > 0) {
             pendingSend--;
-            if (pendingSend == 0 && cooldown > 0) {
+            if (pendingSend == 0) {
                 Minecraft mc = Minecraft.getInstance();
                 if (mc.player != null) {
                     mc.player.connection.sendChat(message.get());

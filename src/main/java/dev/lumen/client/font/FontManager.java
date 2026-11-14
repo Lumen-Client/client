@@ -139,7 +139,7 @@ public class FontManager {
 
     /**
      * Returns the active custom renderer, or null when the vanilla font is
-     * selected or the font could not be loaded.
+     * selected or the font could not be loaded (vanilla fallback).
      */
     public LumenFontRenderer getActiveRenderer() {
         if (vanillaFont) return null;
@@ -148,6 +148,7 @@ public class FontManager {
             entry = fonts.get("inter");
             if (entry == null) return null;
         }
+        if (entry.renderer != null && !entry.renderer.isAvailable()) return null;
         return entry.renderer;
     }
 
@@ -160,6 +161,7 @@ public class FontManager {
         FontEntry entry = fonts.get(id);
         if (entry != null && entry.renderer == null) {
             entry.renderer = new LumenFontRenderer(id, entry.data);
+            entry.renderer.warmUp();
         }
     }
 

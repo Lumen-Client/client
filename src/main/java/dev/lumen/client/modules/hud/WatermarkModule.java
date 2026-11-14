@@ -12,7 +12,7 @@ public class WatermarkModule extends HudModule {
     private float shimmerPhase;
 
     public WatermarkModule() {
-        super("Watermark", "Animated Lumen Client watermark");
+        super("Watermark", "Animated Lumen Client watermark", 6.0f, 6.0f);
     }
 
     @Override

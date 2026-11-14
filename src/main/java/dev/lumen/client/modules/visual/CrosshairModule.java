@@ -32,6 +32,8 @@ public class CrosshairModule extends Module {
     public final BooleanSetting targetHighlight = new BooleanSetting("Target Highlight", true);
 
     private final dev.lumen.client.anim.Animation spreadAnim = new dev.lumen.client.anim.Animation(0.15f, dev.lumen.client.anim.Easing::easeOutCubic);
+    private long previewNanos = System.nanoTime();
+    private float previewPhase;
     private final dev.lumen.client.anim.Animation targetAnim = new dev.lumen.client.anim.Animation(0.15f, dev.lumen.client.anim.Easing::easeOutCubic);
 
     public CrosshairModule() {
@@ -78,6 +80,26 @@ public class CrosshairModule extends Module {
             targetAnim.setTarget(target instanceof LivingEntity && target.isAlive());
             targetAnim.update();
         }
+    }
+
+    /**
+     * Animated preview used in the Appearance tab: simulates movement spread
+     * and target highlighting so the preview shows what the crosshair will
+     * actually look like in game.
+     */
+    public void renderPreview(GuiGraphics graphics, int centerX, int centerY) {
+        float dt = dev.lumen.client.anim.AnimationUtils.deltaSeconds(previewNanos);
+        previewNanos = System.nanoTime();
+        previewPhase += dt;
+        if (dynamicSpread.get()) {
+            spreadAnim.setTarget((previewPhase % 2.4f) < 1.2f);
+            spreadAnim.update();
+        }
+        if (targetHighlight.get()) {
+            targetAnim.setTarget((previewPhase % 3.2f) < 1.6f);
+            targetAnim.update();
+        }
+        renderCrosshair(graphics, centerX, centerY);
     }
 
     /**

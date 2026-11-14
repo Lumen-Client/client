@@ -86,7 +86,7 @@ public class FreelookModule extends Module {
             activate = active;
         }
 
-        if (activate && !active && !returning) {
+        if (activate && !active) {
             start(mc);
         } else if (!activate && active) {
             beginReturn(mc);
@@ -96,7 +96,10 @@ public class FreelookModule extends Module {
     private void start(Minecraft mc) {
         active = true;
         returning = false;
-        previousCameraType = mc.options.getCameraType();
+        CameraType current = mc.options.getCameraType();
+        if (current != CameraType.THIRD_PERSON_BACK && current != CameraType.THIRD_PERSON_FRONT) {
+            previousCameraType = current;
+        }
         CameraType target = perspective.get() == Perspective.THIRD_PERSON_FRONT
                 ? CameraType.THIRD_PERSON_FRONT : CameraType.THIRD_PERSON_BACK;
         mc.options.setCameraType(target);
@@ -125,9 +128,14 @@ public class FreelookModule extends Module {
         Minecraft mc = Minecraft.getInstance();
         if (returning && mc.player != null) {
             float delta = 0.06f;
-            cameraYaw = AnimationUtils.springApproach(cameraYaw, mc.player.getYRot(), yawVelocity, delta);
-            cameraPitch = AnimationUtils.springApproach(cameraPitch, mc.player.getXRot(), pitchVelocity, delta);
-            if (Math.abs(cameraYaw - mc.player.getYRot()) < 0.15f && Math.abs(cameraPitch - mc.player.getXRot()) < 0.15f) {
+            float targetYaw = mc.player.getYRot();
+            float targetPitch = mc.player.getXRot();
+            float yawDiff = net.minecraft.util.Mth.wrapDegrees(targetYaw - cameraYaw);
+            cameraYaw = AnimationUtils.springApproach(cameraYaw, cameraYaw + yawDiff, yawVelocity, delta);
+            cameraPitch = AnimationUtils.springApproach(cameraPitch, targetPitch, pitchVelocity, delta);
+            if (Math.abs(yawDiff) < 0.15f && Math.abs(cameraPitch - targetPitch) < 0.15f) {
+                cameraYaw = targetYaw;
+                cameraPitch = targetPitch;
                 finishReturn(mc);
             }
         }

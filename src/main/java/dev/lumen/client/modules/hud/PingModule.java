@@ -11,10 +11,11 @@ import net.minecraft.client.multiplayer.PlayerInfo;
 
 public class PingModule extends HudModule {
     private int ping;
+    private boolean local;
     private int refreshCounter;
 
     public PingModule() {
-        super("Ping", "Latency to the current server");
+        super("Ping", "Latency to the current server", 6.0f, 44.0f);
     }
 
     public int getPing() {
@@ -28,6 +29,12 @@ public class PingModule extends HudModule {
             ping = -1;
             return;
         }
+        if (mc.isSingleplayer()) {
+            ping = 0;
+            local = true;
+            return;
+        }
+        local = false;
         PlayerInfo info = connection.getPlayerInfo(mc.player.getUUID());
         ping = info == null ? -1 : info.getLatency();
     }
@@ -47,6 +54,10 @@ public class PingModule extends HudModule {
         if (++refreshCounter >= 20) {
             refreshCounter = 0;
             refresh();
+        }
+        if (local) {
+            TextRenderer.draw(graphics, "Ping Local", 5.0f, 4.0f, ColorUtils.withAlpha(ThemeManager.get().getText(), 200), true);
+            return;
         }
         if (ping < 0) {
             TextRenderer.draw(graphics, "Ping --", 5.0f, 4.0f, ColorUtils.withAlpha(ThemeManager.get().getText(), 180), true);

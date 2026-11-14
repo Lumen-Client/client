@@ -24,7 +24,7 @@ public class ChatTimestampsModule extends Module {
             if (!isEnabled() || overlay) return message;
             String time = LocalTime.now().format(FORMAT);
             String prefix = "[" + time + "] ";
-            Component timestamp = Component.literal(prefix).withStyle(s -> s.withColor(timestampColor.get() & 0xFFFFFF));
+            Component timestamp = Component.literal(prefix).withStyle(s -> s.withColor(timestampColor.get()));
             return timestamp.copy().append(message);
         });
     }

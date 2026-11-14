@@ -27,15 +27,16 @@ public class HudEditorScreen extends Screen {
     private final Screen parent;
     private final Animation gridAnim = new Animation(0.35f, Easing::easeOutCubic);
     private final Animation fadeAnim = new Animation(0.2f, Easing::easeOutCubic);
-    private final Animation scaleAnim = new Animation(0.24f, Easing::easeOutBack);
     private final Animation guideAlpha = new Animation(0.15f, Easing::easeOutCubic);
     private boolean closing;
+    private boolean snapEnabled = true;
 
     private HudModule dragging;
     private double dragOffsetX;
     private double dragOffsetY;
     private boolean snapCenterX;
     private boolean snapCenterY;
+    private boolean wasSnapping;
 
     private HudModule settling;
     private final VelocityState settleVelX = new VelocityState();
@@ -46,6 +47,7 @@ public class HudEditorScreen extends Screen {
     public HudEditorScreen(Screen parent) {
         super(Component.literal("Lumen HUD Editor"));
         this.parent = parent;
+        dev.lumen.client.sfx.ClientSounds.guiOpen();
     }
 
     public HudEditorScreen() {
@@ -58,15 +60,15 @@ public class HudEditorScreen extends Screen {
         gridAnim.setTarget(true);
         fadeAnim.snap(false);
         fadeAnim.setTarget(true);
-        scaleAnim.snap(false);
-        scaleAnim.setTarget(true);
     }
 
     private void startClosing() {
+        if (!closing) {
+            dev.lumen.client.sfx.ClientSounds.guiClose();
+        }
         closing = true;
         gridAnim.setTarget(false);
         fadeAnim.setTarget(false);
-        scaleAnim.setTarget(false);
     }
 
     @Override
@@ -75,7 +77,6 @@ public class HudEditorScreen extends Screen {
         lastNanos = System.nanoTime();
         gridAnim.update();
         fadeAnim.update();
-        scaleAnim.update();
         guideAlpha.update();
         ThemeManager.get().renderTick(dt);
 
@@ -98,14 +99,6 @@ public class HudEditorScreen extends Screen {
             RenderUtils.fill(graphics, 0, gy, width, 1, gridColor);
         }
 
-        float scale = 0.92f + 0.08f * scaleAnim.getValue();
-        float cx = width / 2.0f;
-        float cy = height / 2.0f;
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(cx, cy);
-        graphics.pose().scale(scale, scale);
-        graphics.pose().translate(-cx, -cy);
-
         List<HudModule> modules = LumenClient.get().getModuleManager().getHudModules();
         for (HudModule module : modules) {
             if (!module.isEnabled() || !module.shouldShowInEditor()) continue;
@@ -123,9 +116,9 @@ public class HudEditorScreen extends Screen {
             }
         }
 
-        graphics.pose().popMatrix();
-
-        String hint = "Drag to move - Scroll to scale - Center axes snap - ESC to save & exit";
+        String hint = snapEnabled
+                ? "Drag to move - Scroll to scale - Center axes snap - ESC to save & exit"
+                : "Drag to move - Scroll to scale - Snapping OFF - ESC to save & exit";
         float hintW = TextRenderer.width(hint);
         float hintY = height - 18.0f;
         RenderUtils.roundedRect(graphics, width / 2.0f - hintW / 2.0f - 8.0f, hintY - 4.0f, hintW + 16.0f, 15.0f, 5.0f,
@@ -134,7 +127,19 @@ public class HudEditorScreen extends Screen {
                 ColorUtils.withAlpha(theme.getText(), (int) (190 * alpha)), true);
 
         TextRenderer.drawScaled(graphics, "HUD Layout Editor", 8.0f, 6.0f, theme.gradientColor(0.0f, alpha), 1.1f, true);
+
+        String snapLabel = "Snap: " + (snapEnabled ? "ON" : "OFF");
+        float snapW = TextRenderer.width(snapLabel);
+        snapButtonX = width - snapW - 22.0f;
+        snapButtonY = 6.0f;
+        int snapBg = ColorUtils.withAlpha(snapEnabled ? theme.getPrimary() : theme.getCard(), (int) (200 * alpha));
+        RenderUtils.roundedRect(graphics, snapButtonX, snapButtonY - 3.0f, snapW + 14.0f, 15.0f, 5.0f, snapBg);
+        TextRenderer.draw(graphics, snapLabel, snapButtonX + 7.0f, snapButtonY,
+                ColorUtils.withAlpha(snapEnabled ? 0xFFFFFF : theme.getText(), (int) (230 * alpha)), true);
     }
+
+    private float snapButtonX = -100.0f;
+    private float snapButtonY = -100.0f;
 
     private void renderModule(GuiGraphics graphics, HudModule module, int mouseX, int mouseY, float alpha) {
         ThemeManager theme = ThemeManager.get();
@@ -179,6 +184,17 @@ public class HudEditorScreen extends Screen {
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
         if (event.button() == 0) {
+            if (event.x() >= snapButtonX && event.x() <= snapButtonX + TextRenderer.width("Snap: ON") + 14.0f
+                    && event.y() >= snapButtonY - 3.0f && event.y() <= snapButtonY + 12.0f) {
+                snapEnabled = !snapEnabled;
+                dev.lumen.client.sfx.ClientSounds.click();
+                if (!snapEnabled) {
+                    snapCenterX = false;
+                    snapCenterY = false;
+                    guideAlpha.setTarget(false);
+                }
+                return true;
+            }
             List<HudModule> modules = LumenClient.get().getModuleManager().getHudModules();
             for (int i = modules.size() - 1; i >= 0; i--) {
                 HudModule module = modules.get(i);
@@ -203,10 +219,15 @@ public class HudEditorScreen extends Screen {
             float w = dragging.getHudWidth() * dragging.getScale();
             float h = dragging.getHudHeight() * dragging.getScale();
 
-            snapCenterX = Math.abs(newX + w / 2.0f - width / 2.0f) < 6.0f;
-            snapCenterY = Math.abs(newY + h / 2.0f - height / 2.0f) < 6.0f;
+            snapCenterX = snapEnabled && Math.abs(newX + w / 2.0f - width / 2.0f) < 6.0f;
+            snapCenterY = snapEnabled && Math.abs(newY + h / 2.0f - height / 2.0f) < 6.0f;
             if (snapCenterX) newX = width / 2.0f - w / 2.0f;
             if (snapCenterY) newY = height / 2.0f - h / 2.0f;
+            boolean snapping = snapCenterX || snapCenterY;
+            if (snapping && !wasSnapping) {
+                dev.lumen.client.sfx.ClientSounds.snap();
+            }
+            wasSnapping = snapping;
 
             newX = Math.max(-w / 2.0f, Math.min(width - w / 2.0f, newX));
             newY = Math.max(-h / 2.0f, Math.min(height - h / 2.0f, newY));

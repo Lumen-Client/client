@@ -24,7 +24,7 @@ public class SprintStatusModule extends HudModule {
     private boolean visible;
 
     public SprintStatusModule() {
-        super("Sprint Status", "Vanilla sprint/sneak state badge (read-only)");
+        super("Sprint Status", "Vanilla sprint/sneak state badge (read-only)", 6.0f, 210.0f);
         addSettings(showSneak);
     }
 

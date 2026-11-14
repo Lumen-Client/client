@@ -41,8 +41,13 @@ public abstract class Module {
     public void setEnabled(boolean enabled) {
         if (this.enabled == enabled) return;
         this.enabled = enabled;
-        if (enabled) onEnable();
-        else onDisable();
+        if (enabled) {
+            onEnable();
+            dev.lumen.client.sfx.ClientSounds.moduleEnable();
+        } else {
+            onDisable();
+            dev.lumen.client.sfx.ClientSounds.moduleDisable();
+        }
         LumenClient.get().getConfigManager().markDirty();
     }
 

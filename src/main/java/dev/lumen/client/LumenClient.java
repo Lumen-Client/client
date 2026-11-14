@@ -7,6 +7,7 @@ import dev.lumen.client.font.FontManager;
 import dev.lumen.client.gui.ClickGuiScreen;
 import dev.lumen.client.gui.HudEditorScreen;
 import dev.lumen.client.input.KeybindManager;
+import dev.lumen.client.render.HitboxRenderer;
 import dev.lumen.client.render.HudRenderDispatcher;
 import dev.lumen.client.theme.ThemeManager;
 import net.fabricmc.api.ClientModInitializer;
@@ -75,6 +76,8 @@ public class LumenClient implements ClientModInitializer {
                 HudRenderDispatcher.INSTANCE
         );
 
+        HitboxRenderer.register();
+
         ClientTickEvents.END_CLIENT_TICK.register(this::onEndClientTick);
 
         Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown, "Lumen Config Shutdown Hook"));
@@ -93,6 +96,7 @@ public class LumenClient implements ClientModInitializer {
         float delta = AnimationUtils.deltaSeconds(lastFrameNanos);
         lastFrameNanos = System.nanoTime();
         themeManager.renderTick(delta);
+        moduleManager.renderAll();
     }
 
     public void openClickGui(Minecraft minecraft) {

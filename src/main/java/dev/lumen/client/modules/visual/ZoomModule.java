@@ -52,8 +52,7 @@ public class ZoomModule extends Module {
         float activate = zoomAnim.getValue();
         if (activate <= 0.0001f) return 1.0f;
         double mag = currentMagnification;
-        float eased = 1.0f - activate;
-        return (float) (1.0 + (mag - 1.0) * Math.pow(eased, 1.6));
+        return (float) (1.0 + (mag - 1.0) * Math.pow(activate, 1.6));
     }
 
     public double getCurrentMagnification() {

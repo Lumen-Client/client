@@ -27,9 +27,10 @@ public class PotionStatusModule extends HudModule {
 
     private final List<Row> rows = new ArrayList<>();
     private int lastRowCount;
+    private boolean anyVisible;
 
     public PotionStatusModule() {
-        super("Potion Status", "Active effect timers");
+        super("Potion Status", "Active effect timers", 150.0f, 6.0f);
     }
 
     @Override
@@ -48,10 +49,19 @@ public class PotionStatusModule extends HudModule {
     }
 
     @Override
+    public boolean isContentEmpty() {
+        return !anyVisible;
+    }
+
+    @Override
     public void renderHud(GuiGraphics graphics, float delta) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null) return;
+        if (mc.player == null) {
+            anyVisible = false;
+            return;
+        }
         ThemeManager theme = ThemeManager.get();
+        anyVisible = false;
 
         Collection<MobEffectInstance> effects = mc.player.getActiveEffects();
         int index = 0;
@@ -76,8 +86,10 @@ public class PotionStatusModule extends HudModule {
             row.anim.update();
             if (row.anim.getValue() > 0.02f) {
                 renderRow(graphics, row, i * 22.0f, theme);
+                anyVisible = true;
             }
         }
+        anyVisible = anyVisible || index > 0;
         lastRowCount = index;
     }
 

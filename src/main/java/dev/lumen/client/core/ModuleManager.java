@@ -41,7 +41,6 @@ public class ModuleManager {
         register(new ArmorStatusModule());
         register(new TargetHudModule());
         register(new ComboCounterModule());
-        register(new MiniPlayerModule());
 
         register(new CrosshairModule());
         register(new ZoomModule());
@@ -50,12 +49,12 @@ public class ModuleManager {
         register(new HitboxesModule());
         register(new NoHurtCamModule());
         register(new LowFireModule());
+        register(new LowShieldModule());
         register(new TimeChangerModule());
 
         register(new AutoGGModule());
         register(new ChatTimestampsModule());
         register(new ChatStackingModule());
-        register(new InventorySortModule());
 
         register(new ParticleOptimizerModule());
         register(new ChunkOptimizerModule());
@@ -116,6 +115,14 @@ public class ModuleManager {
         for (Module module : modules) {
             if (module.isEnabled()) {
                 module.onClientTick();
+            }
+        }
+    }
+
+    public void renderAll() {
+        for (Module module : modules) {
+            if (module.isEnabled()) {
+                module.onRenderTick();
             }
         }
     }

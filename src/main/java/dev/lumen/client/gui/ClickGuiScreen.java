@@ -83,6 +83,10 @@ public class ClickGuiScreen extends Screen {
 
     private final NumberSetting gradientSpeedSetting = new NumberSetting("Gradient Speed", 1.0, 0.1, 3.0, 0.05, 2);
     private final NumberSetting fontScaleSetting = new NumberSetting("Font Scale", 1.0, 0.5, 2.0, 0.05, 2);
+    private final NumberSetting guiOpacitySetting = new NumberSetting("Background Opacity", 1.0, 0.3, 1.0, 0.05, 2);
+    private final NumberSetting guiScaleSetting = new NumberSetting("GUI Scale", 1.0, 0.7, 1.6, 0.05, 2);
+    private final Map<NumberSetting, float[]> sliderGeom = new HashMap<>();
+    private final Map<NumberSetting, float[]> appearanceSliderGeom = new HashMap<>();
     private int fontIndex;
 
     private EditBox profileBox;
@@ -92,7 +96,6 @@ public class ClickGuiScreen extends Screen {
     private float contentY;
     private float contentW;
     private float contentH;
-    private float hudEditorButtonY = -1.0f;
     private float gcButtonY = -1.0f;
     private float closeX;
     private float closeY;
@@ -104,10 +107,14 @@ public class ClickGuiScreen extends Screen {
     private float crosshairPreviewY = -1.0f;
     private float saveButtonY = -1.0f;
     private final List<Float> profileRowYs = new ArrayList<>();
+    private float guiK = 1.0f;
+    private float hudEditorSidebarY = -1.0f;
+    private String tooltipText;
 
     public ClickGuiScreen(Screen parent) {
         super(Component.literal("Lumen Client"));
         this.parent = parent;
+        dev.lumen.client.sfx.ClientSounds.guiOpen();
     }
 
     @Override
@@ -120,6 +127,8 @@ public class ClickGuiScreen extends Screen {
             profileBox = new EditBox(minecraft.font, 0, 0, 150, 15, Component.literal("Profile name"));
             profileBox.setMaxLength(24);
         }
+        guiOpacitySetting.set(ThemeManager.get().getGuiOpacity());
+        guiScaleSetting.set(ThemeManager.get().getGuiScale());
         FontManager fonts = FontManager.get();
         fontScaleSetting.set(fonts.getFontScale());
         List<String> ids = fontIds();
@@ -134,6 +143,9 @@ public class ClickGuiScreen extends Screen {
     }
 
     private void startClosing() {
+        if (!closing) {
+            dev.lumen.client.sfx.ClientSounds.guiClose();
+        }
         closing = true;
         scaleAnim.setTarget(false);
         fadeAnim.setTarget(false);
@@ -149,6 +161,25 @@ public class ClickGuiScreen extends Screen {
         float target = activeTab * TAB_H;
         indicatorY = AnimationUtils.approach(indicatorY, target, 22.0f, delta);
         scroll = AnimationUtils.approach(scroll, scrollTarget, 20.0f, delta);
+        guiScaleSetting.set(ThemeManager.get().getGuiScale());
+        guiOpacitySetting.set(ThemeManager.get().getGuiOpacity());
+    }
+
+    /**
+     * The GUI renders at a constant real-world size regardless of Minecraft's
+     * GUI Scale option; the Appearance tab slider scales it further.
+     */
+    private float computeGuiK() {
+        float windowScale = Math.max(1.0f, minecraft.getWindow().getGuiScale());
+        return (windowScale / 2.0f) * guiScaleSetting.getFloat();
+    }
+
+    private double toLocalX(double x) {
+        return width / 2.0f + (x - width / 2.0f) / guiK;
+    }
+
+    private double toLocalY(double y) {
+        return height / 2.0f + (y - height / 2.0f) / guiK;
     }
 
     @Override
@@ -162,11 +193,15 @@ public class ClickGuiScreen extends Screen {
 
         RenderUtils.fill(graphics, 0, 0, width, height, ColorUtils.withAlpha(0x66000000, (int) (255 * alpha)));
 
+        guiK = computeGuiK();
         float winX = (width - WIN_W) / 2.0f;
         float winY = (height - WIN_H) / 2.0f;
-        float scale = 0.92f + 0.08f * scaleAnim.getValue();
-        float cx = winX + WIN_W / 2.0f;
-        float cy = winY + WIN_H / 2.0f;
+        float scale = (0.92f + 0.08f * scaleAnim.getValue()) * guiK;
+        float cx = width / 2.0f;
+        float cy = height / 2.0f;
+
+        float localMouseX = (float) toLocalX(mouseX);
+        float localMouseY = (float) toLocalY(mouseY);
 
         graphics.pose().pushMatrix();
         graphics.pose().translate(cx, cy);
@@ -174,17 +209,20 @@ public class ClickGuiScreen extends Screen {
         graphics.pose().translate(-cx, -cy);
 
         ThemeManager theme = ThemeManager.get();
+        tooltipText = null;
         RenderUtils.dropShadow(graphics, winX, winY, WIN_W, WIN_H);
         RenderUtils.roundedRect(graphics, winX, winY, WIN_W, WIN_H, 10.0f,
-                ColorUtils.withAlpha(theme.getBackground(), (int) (242 * alpha)));
+                ColorUtils.withAlpha(theme.getBackground(), (int) (242 * alpha * theme.getGuiOpacity())));
         RenderUtils.roundedGradient(graphics, winX, winY, WIN_W, HEADER_H, 10.0f,
                 theme.gradientColor(0.0f, alpha * 0.35f), theme.gradientColor(1.0f, alpha * 0.35f), true);
         RenderUtils.border(graphics, winX, winY, WIN_W, WIN_H, 1.0f,
                 ColorUtils.withAlpha(theme.getPrimary(), (int) (90 * alpha)));
 
-        TextRenderer.drawScaled(graphics, "Lumen Client", winX + 10.0f, winY + 8.0f,
+        RenderUtils.drawTexture(graphics, RenderUtils.LOGO_TEXTURE, winX + 9.0f, winY + 5.0f, 14.0f, 14.0f,
+                ColorUtils.withAlpha(0xFFFFFF, (int) (255 * alpha)));
+        TextRenderer.drawScaled(graphics, "Lumen Client", winX + 27.0f, winY + 8.0f,
                 theme.gradientColor(0.0f, alpha), 1.1f, true);
-        TextRenderer.drawScaled(graphics, "v" + Lumen.VERSION, winX + 95.0f, winY + 9.0f,
+        TextRenderer.drawScaled(graphics, "v" + Lumen.VERSION, winX + 112.0f, winY + 9.0f,
                 ColorUtils.withAlpha(theme.getText(), (int) (140 * alpha)), 0.8f, true);
 
         closeX = winX + WIN_W - 18.0f;
@@ -193,12 +231,24 @@ public class ClickGuiScreen extends Screen {
         TextRenderer.draw(graphics, "\u2715", closeX, winY + 7.0f,
                 ColorUtils.withAlpha(closeHover ? 0xFFFF4646 : theme.getText(), (int) (220 * alpha)), true);
 
-        renderSidebar(graphics, mouseX, mouseY, winX, winY, alpha);
-        renderContent(graphics, mouseX, mouseY, winX, winY, alpha, delta);
+        renderSidebar(graphics, (int) localMouseX, (int) localMouseY, winX, winY, alpha);
+        renderContent(graphics, (int) localMouseX, (int) localMouseY, winX, winY, alpha, delta);
+
+        colorPicker.render(graphics, (int) localMouseX, (int) localMouseY, delta, alpha);
+
+        if (tooltipText != null && !tooltipText.isEmpty()) {
+            float tw = TextRenderer.width(tooltipText);
+            float tx = Math.min(localMouseX + 12.0f, width - tw - 18.0f);
+            float ty = Math.min(localMouseY + 16.0f, height - 24.0f);
+            RenderUtils.roundedRect(graphics, tx - 6.0f, ty - 4.0f, tw + 12.0f, TextRenderer.height() + 8.0f, 5.0f,
+                    ColorUtils.withAlpha(0xFF0B0B0E, (int) (242 * alpha)));
+            RenderUtils.border(graphics, tx - 6.0f, ty - 4.0f, tw + 12.0f, TextRenderer.height() + 8.0f, 1.0f,
+                    ColorUtils.withAlpha(theme.getPrimary(), (int) (120 * alpha)));
+            TextRenderer.draw(graphics, tooltipText, tx, ty,
+                    ColorUtils.withAlpha(theme.getText(), (int) (235 * alpha)), true);
+        }
 
         graphics.pose().popMatrix();
-
-        colorPicker.render(graphics, mouseX, mouseY, delta, alpha);
     }
 
     private void renderSidebar(GuiGraphics graphics, int mouseX, int mouseY, float winX, float winY, float alpha) {
@@ -221,6 +271,21 @@ public class ClickGuiScreen extends Screen {
             int color = active ? theme.gradientColor(0.5f, alpha)
                     : ColorUtils.withAlpha(theme.getText(), (int) ((hover ? 200 : 130) * alpha));
             TextRenderer.draw(graphics, TABS[i], winX + 20.0f, tabY + TAB_H / 2.0f - TextRenderer.height() / 2.0f, color, true);
+        }
+
+        hudEditorSidebarY = sidebarY + 6.0f + TABS.length * TAB_H + 8.0f;
+        boolean editorHover = mouseX >= winX + 8 && mouseX <= winX + SIDEBAR_W - 8
+                && mouseY >= hudEditorSidebarY && mouseY <= hudEditorSidebarY + 22.0f;
+        RenderUtils.roundedGradient(graphics, winX + 8.0f, hudEditorSidebarY, SIDEBAR_W - 16.0f, 22.0f, 6.0f,
+                theme.gradientColor(0.0f, alpha * (editorHover ? 1.0f : 0.7f)),
+                theme.gradientColor(1.0f, alpha * (editorHover ? 1.0f : 0.7f)), false);
+        String editorLabel = "HUD Editor";
+        TextRenderer.draw(graphics, editorLabel,
+                winX + 8.0f + (SIDEBAR_W - 16.0f - TextRenderer.width(editorLabel)) / 2.0f,
+                hudEditorSidebarY + 11.0f - TextRenderer.height() / 2.0f,
+                ColorUtils.withAlpha(0xFFFFFFFF, (int) (255 * alpha)), true);
+        if (editorHover) {
+            tooltipText = "Rearrange HUD elements: drag to move, scroll to scale";
         }
     }
 
@@ -283,19 +348,7 @@ public class ClickGuiScreen extends Screen {
             y += rowHeight;
         }
 
-        if (activeTab == 0) {
-            float buttonY = y + 6.0f;
-            listBottom += 34.0f;
-            boolean hover = mouseX >= contentX + 8 && mouseX <= contentX + contentW - 8
-                    && mouseY >= buttonY && mouseY <= buttonY + 22;
-            RenderUtils.roundedGradient(graphics, contentX + 8.0f, buttonY, contentW - 16.0f, 22.0f, 6.0f,
-                    theme.gradientColor(0.0f, alpha * (hover ? 1.0f : 0.75f)),
-                    theme.gradientColor(1.0f, alpha * (hover ? 1.0f : 0.75f)), false);
-            String label = "Open HUD Layout Editor";
-            TextRenderer.draw(graphics, label, contentX + (contentW - TextRenderer.width(label)) / 2.0f,
-                    buttonY + 11.0f - TextRenderer.height() / 2.0f, ColorUtils.withAlpha(0xFFFFFFFF, (int) (255 * alpha)), true);
-            hudEditorButtonY = buttonY;
-        } else if (activeTab == 3) {
+        if (activeTab == 3) {
             listBottom = renderPerformanceExtras(graphics, mouseX, mouseY, y + 6.0f, alpha, listBottom);
         }
 
@@ -358,6 +411,9 @@ public class ClickGuiScreen extends Screen {
         float rowW = contentW - 16.0f;
 
         boolean hover = mouseX >= rowX && mouseX <= rowX + rowW && mouseY >= y && mouseY <= y + ROW_H;
+        if (hover) {
+            tooltipText = module.getDescription();
+        }
         int cardColor = ColorUtils.withAlpha(hover ? ColorUtils.brighten(theme.getCard(), 0.06f) : theme.getCard(), (int) (235 * alpha));
         RenderUtils.roundedRect(graphics, rowX, y, rowW, ROW_H, 6.0f, cardColor);
         if (module.isEnabled()) {
@@ -387,7 +443,7 @@ public class ClickGuiScreen extends Screen {
             for (Setting setting : module.getSettings()) {
                 if (!setting.isVisible()) continue;
                 float h = Math.min(SETTING_H, visible);
-                renderSettingRow(graphics, setting, rowX, sy, rowW, alpha, h);
+                renderSettingRow(graphics, setting, rowX, sy, rowW, alpha, h, mouseX, mouseY);
                 sy += h;
                 visible -= h;
                 if (visible <= 0.01f) break;
@@ -406,10 +462,15 @@ public class ClickGuiScreen extends Screen {
         return height;
     }
 
-    private void renderSettingRow(GuiGraphics graphics, Setting setting, float x, float y, float w, float alpha, float clipH) {
+    private void renderSettingRow(GuiGraphics graphics, Setting setting, float x, float y, float w, float alpha, float clipH,
+                                  int mouseX, int mouseY) {
         ThemeManager theme = ThemeManager.get();
         int text = ColorUtils.withAlpha(theme.getText(), (int) (220 * alpha));
         float padding = 12.0f;
+
+        if (mouseY >= y && mouseY <= y + clipH && mouseX >= x && mouseX <= x + w) {
+            tooltipText = setting.getDescription();
+        }
 
         if (setting instanceof BooleanSetting bool) {
             TextRenderer.draw(graphics, setting.getName(), x + padding, y + clipH / 2.0f - TextRenderer.height() / 2.0f, text, true);
@@ -417,7 +478,11 @@ public class ClickGuiScreen extends Screen {
             toggle.render(graphics, x + w - 46.0f, y + clipH / 2.0f - 8.0f, 34.0f, 16.0f, bool.get(), alpha);
         } else if (setting instanceof NumberSetting number) {
             Slider slider = sliderCache.computeIfAbsent(setting, k -> new Slider());
-            slider.render(graphics, x + padding, y + clipH - 10.0f, w - padding * 2.0f, 7.0f, number, alpha);
+            float sx = x + padding;
+            float sy2 = y + clipH - 10.0f;
+            float sw = w - padding * 2.0f;
+            slider.render(graphics, sx, sy2, sw, 7.0f, number, alpha);
+            sliderGeom.put(number, new float[]{sx, sy2, sw, 7.0f});
         } else if (setting instanceof EnumSetting<?> enumSetting) {
             TextRenderer.draw(graphics, setting.getName(), x + padding, y + clipH / 2.0f - TextRenderer.height() / 2.0f, text, true);
             drawValueChip(graphics, enumSetting.get().name(), x + w - 90.0f, y + clipH / 2.0f - 8.0f, 82.0f, 16.0f, alpha);
@@ -524,6 +589,7 @@ public class ClickGuiScreen extends Screen {
         gradientSpeedSetting.set(theme.getGradientSpeed());
         Slider speedSlider = sliderCache.computeIfAbsent(gradientSpeedSetting, k -> new Slider());
         speedSlider.render(graphics, x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f, gradientSpeedSetting, alpha);
+        appearanceSliderGeom.put(gradientSpeedSetting, new float[]{x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f});
         if (gradientSpeedSetting.get() != theme.getGradientSpeed()) {
             theme.setGradientSpeed(gradientSpeedSetting.getFloat());
         }
@@ -545,8 +611,27 @@ public class ClickGuiScreen extends Screen {
         fontScaleSetting.set(FontManager.get().getFontScale());
         Slider fontSlider = sliderCache.computeIfAbsent(fontScaleSetting, k -> new Slider());
         fontSlider.render(graphics, x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f, fontScaleSetting, alpha);
+        appearanceSliderGeom.put(fontScaleSetting, new float[]{x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f});
         if (fontScaleSetting.get() != FontManager.get().getFontScale()) {
             FontManager.get().setFontScale(fontScaleSetting.getFloat());
+        }
+        bottom += 30.0f;
+
+        bottom = renderSectionLabel(graphics, "Interface", x, bottom, alpha);
+        guiOpacitySetting.set(theme.getGuiOpacity());
+        Slider opacitySlider = sliderCache.computeIfAbsent(guiOpacitySetting, k -> new Slider());
+        opacitySlider.render(graphics, x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f, guiOpacitySetting, alpha);
+        appearanceSliderGeom.put(guiOpacitySetting, new float[]{x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f});
+        if (guiOpacitySetting.get() != theme.getGuiOpacity()) {
+            theme.setGuiOpacity(guiOpacitySetting.getFloat());
+        }
+        bottom += 30.0f;
+        guiScaleSetting.set(theme.getGuiScale());
+        Slider scaleSlider = sliderCache.computeIfAbsent(guiScaleSetting, k -> new Slider());
+        scaleSlider.render(graphics, x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f, guiScaleSetting, alpha);
+        appearanceSliderGeom.put(guiScaleSetting, new float[]{x + 4.0f, bottom + 12.0f, w - 8.0f, 7.0f});
+        if (guiScaleSetting.get() != theme.getGuiScale()) {
+            theme.setGuiScale(guiScaleSetting.getFloat());
         }
         bottom += 30.0f;
 
@@ -556,7 +641,7 @@ public class ClickGuiScreen extends Screen {
                 ColorUtils.withAlpha(theme.getBackground(), (int) (255 * alpha)));
         CrosshairModule crosshair = CrosshairModule.get();
         if (crosshair != null) {
-            crosshair.renderCrosshair(graphics, (int) (x + 4.0f + previewW / 2.0f), (int) (bottom + 23.0f));
+            crosshair.renderPreview(graphics, (int) (x + 4.0f + previewW / 2.0f), (int) (bottom + 23.0f));
         }
         crosshairPreviewY = bottom;
         bottom += 54.0f;
@@ -632,11 +717,11 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
+        double mx = toLocalX(event.x());
+        double my = toLocalY(event.y());
         if (colorPicker.isOpen()) {
-            if (colorPicker.mouseClicked(event, doubled)) return true;
+            if (colorPicker.mouseClicked(new MouseButtonEvent(mx, my, event.buttonInfo()), doubled)) return true;
         }
-        double mx = event.x();
-        double my = event.y();
         if (event.button() != 0) return true;
 
         if (mx >= closeX - 6 && mx <= closeX + 12 && my >= closeY && my <= closeY + HEADER_H) {
@@ -658,6 +743,11 @@ public class ClickGuiScreen extends Screen {
             }
             return true;
         }
+        if (hudEditorSidebarY > 0 && mx >= winX + 8 && mx <= winX + SIDEBAR_W - 8
+                && my >= hudEditorSidebarY && my <= hudEditorSidebarY + 22.0f) {
+            minecraft.setScreen(new HudEditorScreen(this));
+            return true;
+        }
 
         boolean inContent = mx >= contentX && mx <= contentX + contentW && my >= contentY && my <= contentY + contentH;
         if (!inContent) {
@@ -673,6 +763,16 @@ public class ClickGuiScreen extends Screen {
             handleProfilesClick(mx, my);
         }
         return true;
+    }
+
+    private void handleAppearanceSliderDown(double mx, double my) {
+        for (Map.Entry<NumberSetting, float[]> entry : appearanceSliderGeom.entrySet()) {
+            float[] g = entry.getValue();
+            Slider slider = sliderCache.computeIfAbsent(entry.getKey(), k -> new Slider());
+            if (slider.mouseDown(mx, my, entry.getKey(), g[0], g[1], g[2], g[3])) {
+                return;
+            }
+        }
     }
 
     private void handleModuleTabClick(double mx, double my) {
@@ -693,8 +793,9 @@ public class ClickGuiScreen extends Screen {
             }
             if (my >= y && my <= y + rowHeight) {
                 if (module == expanded && my > y + ROW_H) {
-                    handleSettingsClick(module, mx, my - y - ROW_H, rowX, rowW);
+                    handleSettingsClick(module, mx, my, my - y - ROW_H, rowX, rowW);
                 } else if (mx >= rowX + rowW - 46.0f && mx <= rowX + rowW - 6.0f) {
+                    dev.lumen.client.sfx.ClientSounds.click();
                     module.toggle();
                 } else {
                     expanded = expanded == module ? null : module;
@@ -705,26 +806,35 @@ public class ClickGuiScreen extends Screen {
             y += rowHeight;
         }
 
-        if (activeTab == 0 && hudEditorButtonY > 0 && my >= hudEditorButtonY && my <= hudEditorButtonY + 22.0f) {
-            minecraft.setScreen(new HudEditorScreen(this));
-            return;
-        }
         if (activeTab == 3 && gcButtonY > 0 && my >= gcButtonY && my <= gcButtonY + 20.0f) {
             SystemOptimizerModule system = SystemOptimizerModule.get();
             if (system != null) system.triggerCleanup();
         }
     }
 
-    private void handleSettingsClick(Module module, double mx, double myRelative, float rowX, float rowW) {
+    private void handleSettingsClick(Module module, double mx, double myAbsolute, double myRelative, float rowX, float rowW) {
         float y = 0.0f;
         for (Setting setting : module.getSettings()) {
             if (!setting.isVisible()) continue;
             if (myRelative >= y && myRelative < y + SETTING_H) {
                 if (setting instanceof BooleanSetting bool) {
                     bool.toggle();
+                    if (bool.get()) {
+                        dev.lumen.client.sfx.ClientSounds.toggleOn();
+                    } else {
+                        dev.lumen.client.sfx.ClientSounds.toggleOff();
+                    }
                     LumenClient.get().getConfigManager().markDirty();
                 } else if (setting instanceof EnumSetting<?> enumSetting) {
                     enumSetting.cycle();
+                    dev.lumen.client.sfx.ClientSounds.click();
+                    LumenClient.get().getConfigManager().markDirty();
+                } else if (setting instanceof NumberSetting number) {
+                    Slider slider = sliderCache.computeIfAbsent(number, k -> new Slider());
+                    float[] g = sliderGeom.get(number);
+                    if (g != null) {
+                        slider.mouseDown(mx, myAbsolute, number, g[0], g[1], g[2], g[3]);
+                    }
                     LumenClient.get().getConfigManager().markDirty();
                 } else if (setting instanceof ColorSetting color) {
                     float pickerX = rowX + rowW - ColorPickerPanel.WIDTH - 8.0f;
@@ -745,6 +855,7 @@ public class ClickGuiScreen extends Screen {
     }
 
     private void handleAppearanceClick(double mx, double my) {
+        handleAppearanceSliderDown(mx, my);
         ThemeManager theme = ThemeManager.get();
         List<Theme> presets = theme.getPresets();
         for (int i = 0; i < presets.size(); i++) {
@@ -824,12 +935,20 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
-        if (colorPicker.isOpen() && colorPicker.mouseDragged(event, dragX, dragY)) return true;
+        double lx = toLocalX(event.x());
+        double ly = toLocalY(event.y());
+        if (colorPicker.isOpen() && colorPicker.mouseDragged(new MouseButtonEvent(lx, ly, event.buttonInfo()), dragX, dragY)) {
+            return true;
+        }
         NumberSetting owner = activeSliderOwner();
         if (owner != null) {
-            Slider slider = sliderCache.get(owner);
-            slider.drag(event.x(), owner, contentX + 20.0f, contentW - 40.0f);
-            return true;
+            float[] g = sliderGeom.get(owner);
+            if (g == null) g = appearanceSliderGeom.get(owner);
+            if (g != null) {
+                Slider slider = sliderCache.get(owner);
+                slider.drag(lx, owner, g[0], g[2]);
+                return true;
+            }
         }
         return super.mouseDragged(event, dragX, dragY);
     }

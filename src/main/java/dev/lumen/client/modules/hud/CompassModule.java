@@ -13,7 +13,7 @@ public class CompassModule extends HudModule {
     private static final String[] TICK_LABELS = {"S", "SW", "W", "NW", "N", "NE", "E", "SE"};
 
     public CompassModule() {
-        super("Compass", "Scrolling cardinal direction bar");
+        super("Compass", "Scrolling cardinal direction bar", 160.0f, 6.0f);
     }
 
     @Override
